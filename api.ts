@@ -1,8 +1,9 @@
 import { User, StepEntry } from './types';
 import { initializeApp } from 'firebase/app';
-import { 
-  getFirestore, collection, addDoc, 
-  updateDoc, deleteDoc, increment, arrayUnion, 
+import { getAuth, signInAnonymously } from 'firebase/auth';
+import {
+  getFirestore, collection, addDoc,
+  updateDoc, deleteDoc, increment, arrayUnion,
   onSnapshot, serverTimestamp, getDocs, doc, getDoc, setDoc, writeBatch
 } from 'firebase/firestore';
 
@@ -20,6 +21,20 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Sign in anonymously so Firestore requests carry an auth token. This lets the
+// security rules require `request.auth != null`, which blocks unauthenticated
+// scanners/bots from reading or writing the database.
+// NOTE: Anonymous sign-in must be ENABLED in the Firebase console
+// (Authentication -> Sign-in method -> Anonymous) or this will fail and the app
+// will fall back to offline mode.
+const authReady: Promise<unknown> = signInAnonymously(auth).catch((e) => {
+  console.warn(
+    "Anonymous sign-in failed. Enable Anonymous auth in the Firebase console, " +
+    "or the app will run in offline mode:", e?.message ?? e
+  );
+});
 
 // Reverted to standard root collection 'racers' for reliability
 const RACERS_COLLECTION = 'racers';
@@ -28,6 +43,7 @@ const LOCAL_STORAGE_KEY = 'tea_o_race_data';
 // Internal listener queue
 const listeners: ((users: User[], isOnline: boolean) => void)[] = [];
 let unsubscribeSnapshot: (() => void) | null = null;
+let listenerGeneration = 0;
 let isOfflineMode = false;
 
 // --- LOCAL STORAGE HELPERS ---
@@ -54,11 +70,18 @@ const saveLocalUsers = (users: User[]) => {
 
 // Internal function to start the snapshot listener
 const startSnapshotListener = () => {
-  if (unsubscribeSnapshot) unsubscribeSnapshot(); // Clear existing
+  if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; } // Clear existing
 
-  const q = collection(db, RACERS_COLLECTION);
-  
-  unsubscribeSnapshot = onSnapshot(q, 
+  // Wait for anonymous sign-in to resolve before attaching, so the first read
+  // isn't rejected by auth-required rules. The generation guard prevents a
+  // superseded (retried) listener from attaching twice.
+  const myGeneration = ++listenerGeneration;
+  authReady.finally(() => {
+    if (myGeneration !== listenerGeneration) return;
+
+    const q = collection(db, RACERS_COLLECTION);
+
+    unsubscribeSnapshot = onSnapshot(q,
     (snapshot) => {
       // Success! Connection is live.
       isOfflineMode = false;
@@ -85,12 +108,13 @@ const startSnapshotListener = () => {
     (error) => {
       console.warn("Firebase Error (Switching to Offline Mode):", error.message);
       isOfflineMode = true;
-      
+
       // If we failed, serve local data immediately
       const localData = getLocalUsers();
       listeners.forEach(cb => cb(localData, false));
     }
-  );
+    );
+  });
 };
 
 export const api = {

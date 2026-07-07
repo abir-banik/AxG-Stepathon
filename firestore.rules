@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// Firestore security rules for the Tea&O Amazing Race.
+//
+// Deploy these with either:
+//   firebase deploy --only firestore:rules
+// or by pasting them into the Firebase console:
+//   Firestore Database -> Rules -> Publish
+//
+// IMPORTANT: Before publishing, enable Anonymous sign-in in the Firebase console
+// (Authentication -> Sign-in method -> Anonymous -> Enable). The app signs in
+// anonymously on load; without it every request is rejected and the app runs
+// in offline mode.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The racers collection is the only data the app uses.
+    match /racers/{racerId} {
+
+      // Only signed-in clients (including anonymous) may read. This alone stops
+      // unauthenticated scanners/bots from scraping or hammering the database.
+      allow read: if request.auth != null;
+
+      // A new racer must start clean and well-formed.
+      allow create: if request.auth != null
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.steps is number
+        && request.resource.data.steps == 0;
+
+      // Updates (adding steps, editing history) are allowed but the step total
+      // is bounded so a single tampered write can't set an absurd value.
+      allow update: if request.auth != null
+        && request.resource.data.steps is number
+        && request.resource.data.steps >= 0
+        && request.resource.data.steps <= 100000000;
+
+      // No client-side deletes. This is what blocks the "wipe the whole
+      // leaderboard" attack: the in-app Delete / Admin Reset buttons will no
+      // longer reach Firestore. Remove racers or reset the race from the
+      // Firebase console instead (Firestore Database -> racers).
+      allow delete: if false;
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
