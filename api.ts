@@ -1,4 +1,4 @@
-import { User, StepEntry } from './types';
+import { User, StepEntry, Team } from './types';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, addDoc, 
@@ -21,13 +21,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Reverted to standard root collection 'racers' for reliability
 const RACERS_COLLECTION = 'racers';
+const TEAMS_COLLECTION = 'teams';
 const LOCAL_STORAGE_KEY = 'tea_o_race_data';
+const LOCAL_TEAMS_KEY = 'tea_o_teams_data';
 
-// Internal listener queue
+// Internal listener queues
 const listeners: ((users: User[], isOnline: boolean) => void)[] = [];
+const teamListeners: ((teams: Team[]) => void)[] = [];
 let unsubscribeSnapshot: (() => void) | null = null;
+let unsubscribeTeamsSnapshot: (() => void) | null = null;
 let isOfflineMode = false;
 
 // --- LOCAL STORAGE HELPERS ---
@@ -50,6 +53,32 @@ const saveLocalUsers = (users: User[]) => {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
   // Notify listeners with offline status
   listeners.forEach(cb => cb(users, false));
+};
+
+const getLocalTeams = (): Team[] => {
+  try {
+    const data = localStorage.getItem(LOCAL_TEAMS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch { return []; }
+};
+
+const saveLocalTeams = (teams: Team[]) => {
+  localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
+  teamListeners.forEach(cb => cb(teams));
+};
+
+const startTeamsSnapshotListener = () => {
+  if (unsubscribeTeamsSnapshot) unsubscribeTeamsSnapshot();
+
+  const q = collection(db, TEAMS_COLLECTION);
+  unsubscribeTeamsSnapshot = onSnapshot(q, (snapshot) => {
+    const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Team);
+    localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
+    teamListeners.forEach(cb => cb(teams));
+  }, (error) => {
+    console.warn("Teams Firebase Error (Using Local):", error.message);
+    teamListeners.forEach(cb => cb(getLocalTeams()));
+  });
 };
 
 // Internal function to start the snapshot listener
@@ -114,17 +143,69 @@ export const api = {
     };
   },
 
+  // Subscribe to real-time teams
+  subscribeToTeams(callback: (teams: Team[]) => void): () => void {
+    teamListeners.push(callback);
+    if (teamListeners.length === 1) {
+      startTeamsSnapshotListener();
+    } else {
+      callback(getLocalTeams());
+    }
+    return () => {
+      const idx = teamListeners.indexOf(callback);
+      if (idx !== -1) teamListeners.splice(idx, 1);
+    };
+  },
+
+  // Create a new Team (Admin only)
+  async addTeam(name: string, color: string, iconId: string): Promise<Team | null> {
+    const newTeamBase = {
+      name,
+      color: color || '#4285F4',
+      iconId: iconId || 'trophy',
+    };
+    try {
+      const docRef = await addDoc(collection(db, TEAMS_COLLECTION), {
+        ...newTeamBase,
+        createdAt: serverTimestamp()
+      });
+      return { id: docRef.id, ...newTeamBase } as Team;
+    } catch (e) {
+      console.warn("Firebase Team Write Failed, fallback to local", e);
+      const localTeams = getLocalTeams();
+      const newTeam = { ...newTeamBase, id: `team-local-${Date.now()}` };
+      localTeams.push(newTeam);
+      saveLocalTeams(localTeams);
+      return newTeam;
+    }
+  },
+
+  // Delete a Team (Admin only)
+  async deleteTeam(teamId: string): Promise<boolean> {
+    try {
+      await deleteDoc(doc(db, TEAMS_COLLECTION, teamId));
+      return true;
+    } catch (e) {
+      console.warn("Delete team failed, fallback to local", e);
+      const localTeams = getLocalTeams().filter(t => t.id !== teamId);
+      saveLocalTeams(localTeams);
+      return true;
+    }
+  },
+
   // Manual Retry
   retryConnection() {
     isOfflineMode = false;
     startSnapshotListener();
+    startTeamsSnapshotListener();
   },
 
   // Create a new user
   // WE ALWAYS TRY FIREBASE FIRST NOW, REGARDLESS OF PREVIOUS STATUS
-  async addUser(name: string, teamName: string, iconId: string): Promise<User | null> {
+  async addUser(name: string, teamName: string, iconId: string, teamId?: string): Promise<User | null> {
     const newUserBase = {
       name,
+      teamId: teamId || "",
       teamName: teamName || "",
       iconId,
       steps: 0,
@@ -162,19 +243,29 @@ export const api = {
     }
   },
 
-  // Add steps to an existing user for a specific week
-  async addSteps(userId: string, steps: number, week: number): Promise<User | null> {
+  // Add steps to an existing user for a specific week (Max 50,000 steps per entry)
+  async addSteps(userId: string, steps: number, week: number, customDate?: string): Promise<User | null> {
+    const MAX_STEPS_PER_ENTRY = 50000; // 25 miles max single entry
+    const validSteps = Math.min(Math.max(0, Math.floor(Number(steps) || 0)), MAX_STEPS_PER_ENTRY);
+    const validWeek = Math.min(Math.max(1, Math.floor(Number(week) || 1)), 12);
+
+    if (validSteps <= 0 || !userId) return null;
+
+    const entryDate = customDate 
+      ? (customDate.includes('T') ? customDate : new Date(`${customDate}T12:00:00`).toISOString()) 
+      : new Date().toISOString();
+
     try {
       const userRef = doc(db, RACERS_COLLECTION, userId);
       
       // We update the specific week key (e.g., "weeklySteps.1") and the total steps
       await updateDoc(userRef, {
-        steps: increment(steps),
-        [`weeklySteps.${week}`]: increment(steps),
+        steps: increment(validSteps),
+        [`weeklySteps.${validWeek}`]: increment(validSteps),
         stepHistory: arrayUnion({
-          amount: steps,
-          date: new Date().toISOString(),
-          week: week
+          amount: validSteps,
+          date: entryDate,
+          week: validWeek
         }),
         lastUpdated: serverTimestamp()
       });
@@ -194,18 +285,18 @@ export const api = {
       const localUsers = getLocalUsers();
       const user = localUsers.find(u => u.id === userId);
       if (user) {
-        user.steps += steps;
+        user.steps += validSteps;
         
         // Init weeklySteps if missing in local
         if (!user.weeklySteps) user.weeklySteps = {};
-        const currentWeekSteps = user.weeklySteps[week] || 0;
-        user.weeklySteps[week] = currentWeekSteps + steps;
+        const currentWeekSteps = user.weeklySteps[validWeek] || 0;
+        user.weeklySteps[validWeek] = currentWeekSteps + validSteps;
 
         if (!user.stepHistory) user.stepHistory = [];
         user.stepHistory.push({
-          amount: steps,
-          date: new Date().toISOString(),
-          week: week
+          amount: validSteps,
+          date: entryDate,
+          week: validWeek
         });
         saveLocalUsers(localUsers);
         return user;
@@ -303,22 +394,29 @@ export const api = {
   async resetRace(): Promise<void> {
     // 1. Always wipe local storage immediately
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem(LOCAL_TEAMS_KEY);
     
     // 2. Notify listeners immediately to clear UI
     listeners.forEach(cb => cb([], isOfflineMode));
+    teamListeners.forEach(cb => cb([]));
 
     try {
-      // 3. Try to wipe Firestore
+      // 3. Try to wipe Firestore Racers
       const querySnapshot = await getDocs(collection(db, RACERS_COLLECTION));
       const deletePromises = querySnapshot.docs.map((docSnapshot) => 
         deleteDoc(doc(db, RACERS_COLLECTION, docSnapshot.id))
       );
       await Promise.all(deletePromises);
       
+      // 4. Try to wipe Firestore Teams
+      const teamsSnapshot = await getDocs(collection(db, TEAMS_COLLECTION));
+      const deleteTeamPromises = teamsSnapshot.docs.map((docSnapshot) => 
+        deleteDoc(doc(db, TEAMS_COLLECTION, docSnapshot.id))
+      );
+      await Promise.all(deleteTeamPromises);
+
     } catch (e) {
       console.error("Firebase Reset failed (Offline?)", e);
-      // We don't throw here because we want the UI to at least "feel" reset locally
-      // This allows the admin button to work even if the network is flaky
     }
   }
 };

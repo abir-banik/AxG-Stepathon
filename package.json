@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "lucide-react": "^0.562.0",
+    "firebase": "^12.7.0",
+    "htm": "^3.1.1",
     "leaflet": "^1.9.4",
-    "firebase": "^12.7.0"
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
