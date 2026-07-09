@@ -6,18 +6,22 @@ import { Award, Users, TrendingUp, Shield, Crown, Sparkles, ChevronRight, Footpr
 interface TeamLeaderboardPageProps {
   teams: Team[];
   users: User[];
+  distanceUnit?: 'mi' | 'km';
 }
 
-const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users }) => {
+const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users, distanceUnit = 'mi' }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const isKm = distanceUnit === 'km';
 
   // Aggregate team stats
   const teamStats = teams.map(team => {
     const members = users.filter(u => u.teamId === team.id || u.teamName === team.name);
     const totalSteps = members.reduce((acc, m) => acc + (m.steps || 0), 0);
     const totalMiles = totalSteps / 2000;
+    const totalDist = isKm ? totalMiles * 1.60934 : totalMiles;
     const avgSteps = members.length > 0 ? Math.round(totalSteps / members.length) : 0;
     const avgMiles = avgSteps / 2000;
+    const avgDist = isKm ? avgMiles * 1.60934 : avgMiles;
 
     // Top contributor in team
     const sortedMembers = [...members].sort((a, b) => (b.steps || 0) - (a.steps || 0));
@@ -28,8 +32,10 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users 
       members: sortedMembers,
       totalSteps,
       totalMiles,
+      totalDist,
       avgSteps,
       avgMiles,
+      avgDist,
       topContributor
     };
   }).sort((a, b) => b.totalSteps - a.totalSteps);
@@ -130,7 +136,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users 
                       {team.totalSteps.toLocaleString()} <span className="text-xs font-bold text-gray-500">steps</span>
                     </div>
                     <div className="text-xs font-bold text-gray-600">
-                      {team.totalMiles.toFixed(1)} miles
+                      {team.totalDist.toFixed(1)} {isKm ? 'km' : 'miles'}
                     </div>
                   </div>
                 </div>
@@ -138,8 +144,8 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users 
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold text-gray-600">
-                    <span>Route Progress</span>
-                    <span>{progressPercent.toFixed(2)}% of 4,195 miles</span>
+                    <span>Target Progress</span>
+                    <span>{progressPercent.toFixed(2)}% of 35M steps</span>
                   </div>
                   <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden p-0.5 border border-gray-200/50">
                     <div
@@ -161,7 +167,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users 
                       <span className="font-extrabold text-gray-900">{team.topContributor.name}</span>
                     </div>
                     <span className="font-bold text-blue-600">
-                      {(team.topContributor.steps || 0).toLocaleString()} steps ({( (team.topContributor.steps || 0) / 2000 ).toFixed(1)} mi)
+                      {(team.topContributor.steps || 0).toLocaleString()} steps ({( (team.topContributor.steps || 0) / (isKm ? 1242.74 : 2000) ).toFixed(1)} {isKm ? 'km' : 'mi'})
                     </span>
                   </div>
                 )}

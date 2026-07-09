@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Team, User } from '../types';
+import { ACCENTURE_GLOBAL_OFFICES } from '../constants';
 import { 
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
-  Sparkles, Check, X, Lock, Unlock, Layers
+  Sparkles, Check, X, Lock, Unlock, Layers, MapPin
 } from 'lucide-react';
 
 const TEAM_COLORS = [
@@ -19,7 +20,7 @@ const TEAM_COLORS = [
 interface HostAdminPanelProps {
   teams: Team[];
   users: User[];
-  onAddTeam: (name: string, color: string, iconId: string) => Promise<Team | null>;
+  onAddTeam: (name: string, color: string, iconId: string, location?: string, lat?: number, lng?: number) => Promise<Team | null>;
   onDeleteTeam: (teamId: string) => Promise<void>;
   onAddParticipant: (name: string, teamId: string, teamName: string, iconId: string) => Promise<void>;
   onRemoveParticipant: (participantId: string) => Promise<void>;
@@ -43,6 +44,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   // Unified Team & Members Creation State
   const [teamName, setTeamName] = useState('');
   const [selectedColor, setSelectedColor] = useState(TEAM_COLORS[0].hex);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string>(ACCENTURE_GLOBAL_OFFICES[0].id);
   const [memberInputs, setMemberInputs] = useState<string[]>(['', '']); // Default 2 rows
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -80,8 +82,17 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
 
     setIsSubmitting(true);
     try {
-      // 1. Create Team
-      const createdTeam = await onAddTeam(teamName.trim(), selectedColor, 'trophy');
+      const office = ACCENTURE_GLOBAL_OFFICES.find(o => o.id === selectedOfficeId) || ACCENTURE_GLOBAL_OFFICES[0];
+      
+      // 1. Create Team with Office Location Coordinates
+      const createdTeam = await onAddTeam(
+        teamName.trim(), 
+        selectedColor, 
+        'trophy', 
+        office.displayName, 
+        office.lat, 
+        office.lng
+      );
       const teamId = createdTeam?.id || `team-${Date.now()}`;
       const actualTeamName = createdTeam?.name || teamName.trim();
 
@@ -195,13 +206,30 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                 ))}
               </div>
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide flex items-center gap-1">
+                <MapPin size={14} className="text-[#4285F4]" /> 3. Accenture Office Location (Map Pin)
+              </label>
+              <select
+                value={selectedOfficeId}
+                onChange={(e) => setSelectedOfficeId(e.target.value)}
+                className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
+              >
+                {ACCENTURE_GLOBAL_OFFICES.map(office => (
+                  <option key={office.id} value={office.id}>
+                    📍 {office.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Right: Batch Member List */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                3. Team Members (Add all at once)
+                4. Team Members (Add all at once)
               </label>
               <button
                 type="button"

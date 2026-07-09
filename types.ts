@@ -11,6 +11,9 @@ export interface Team {
   name: string;
   color: string;
   iconId: string;
+  location?: string;
+  lat?: number;
+  lng?: number;
   totalSteps?: number;
   createdAt?: string;
 }

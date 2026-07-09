@@ -26,9 +26,18 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   // Form States
   const [stepInput, setStepInput] = useState('');
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    return new Date().toISOString().split('T')[0];
-  });
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val > todayStr) {
+      alert("You can only log steps for today or a past date.");
+      setSelectedDate(todayStr);
+    } else {
+      setSelectedDate(val);
+    }
+  };
 
   const weeksArray = Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1);
 
@@ -136,10 +145,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                 <input
                   type="date"
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
+                  onChange={handleDateChange}
                   className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
-                  max={new Date().toISOString().split('T')[0]}
-                  title="Select date of steps"
+                  max={todayStr}
+                  title="Select date of steps (past or today only)"
                 />
               </div>
 

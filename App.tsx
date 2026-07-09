@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Waypoint, Team } from './types';
 import { ROUTE_WAYPOINTS, TOTAL_GOAL_STEPS } from './constants';
 import RaceMap from './components/RaceMap';
+import GlobalOfficeMap from './components/GlobalOfficeMap';
 import DashboardStats from './components/DashboardStats';
 import Leaderboard from './components/Leaderboard';
 import TimeBasedLeaderboard from './components/TimeBasedLeaderboard';
@@ -12,7 +13,8 @@ import ParticipantStepLogger from './components/ParticipantStepLogger';
 import TeamLeaderboard from './components/TeamLeaderboard';
 import TeamLeaderboardPage from './pages/TeamLeaderboardPage';
 import IndividualLeaderboardPage from './pages/IndividualLeaderboardPage';
-import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard } from 'lucide-react';
+import WeeklyLeaderboardPage from './pages/WeeklyLeaderboardPage';
+import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar } from 'lucide-react';
 import { api } from './api';
 
 const App: React.FC = () => {
@@ -25,12 +27,24 @@ const App: React.FC = () => {
   const [mapViewMode, setMapViewMode] = useState<'global' | 'local'>('global');
   
   // Navigation State (GitHub Pages compatible Hash Routing)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'individuals'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'weekly' | 'teams' | 'individuals'>(() => {
     const hash = window.location.hash.toLowerCase();
+    if (hash.includes('weekly')) return 'weekly';
     if (hash.includes('teams')) return 'teams';
     if (hash.includes('individuals') || hash.includes('racers')) return 'individuals';
     return 'dashboard';
   });
+
+  // Unit Preference (Miles vs Kilometers)
+  const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>(() => {
+    const saved = localStorage.getItem('tea_o_distance_unit');
+    return (saved === 'km' || saved === 'mi') ? saved : 'mi';
+  });
+
+  const handleToggleUnit = (unit: 'mi' | 'km') => {
+    setDistanceUnit(unit);
+    localStorage.setItem('tea_o_distance_unit', unit);
+  };
 
   // Status State
   const [isOffline, setIsOffline] = useState(false);
@@ -68,7 +82,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash.includes('teams')) setActiveTab('teams');
+      if (hash.includes('weekly')) setActiveTab('weekly');
+      else if (hash.includes('teams')) setActiveTab('teams');
       else if (hash.includes('individuals') || hash.includes('racers')) setActiveTab('individuals');
       else setActiveTab('dashboard');
     };
@@ -76,9 +91,10 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const navigateToTab = (tab: 'dashboard' | 'teams' | 'individuals') => {
+  const navigateToTab = (tab: 'dashboard' | 'weekly' | 'teams' | 'individuals') => {
     setActiveTab(tab);
-    if (tab === 'teams') window.location.hash = '/teams';
+    if (tab === 'weekly') window.location.hash = '/weekly';
+    else if (tab === 'teams') window.location.hash = '/teams';
     else if (tab === 'individuals') window.location.hash = '/individuals';
     else window.location.hash = '/';
   };
@@ -204,38 +220,76 @@ const App: React.FC = () => {
         )}
 
         {/* Top Header */}
-        <header className="flex flex-col md:flex-row justify-between items-center border-b border-gray-200 pb-6 gap-4 bg-white p-6 rounded-3xl shadow-sm border-0">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 gap-4 bg-white p-6 rounded-3xl shadow-sm border-0">
           <div>
-            <h1 className="text-3xl font-normal tracking-tight">
-              <span className="text-[#4285F4] font-bold">Tea&O</span> <span className="text-[#EA4335]">Amazing</span> <span className="text-[#FBBC05]">Race</span>
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              <span className="text-[#4285F4]">2nd Annual</span>{" "}
+              <span className="text-[#EA4335]">Global</span>{" "}
+              <span className="text-[#FBBC05]">AxG</span>{" "}
+              <span className="text-[#34A853]">Stepathon</span>
             </h1>
-            <p className="text-gray-500 mt-1 font-medium">Seattle to NYC • 4,195 Miles</p>
+            <p className="text-gray-500 mt-1 font-bold text-xs uppercase tracking-wider">
+              Inclusion & Diversity + Care • July 13 – August 7, 2026
+            </p>
+            <div className="mt-2.5 inline-flex flex-wrap items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-100">
+              <span>🌍 10+ Countries</span>
+              <span className="text-gray-300">•</span>
+              <span>🏆 39+ Teams</span>
+              <span className="text-gray-300">•</span>
+              <span>👟 135+ Participants</span>
+            </div>
           </div>
           
-          {/* Status Badge */}
-          {connectionStatus === 'live' && (
-            <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-100 transition-colors">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-              </span>
-              <span className="text-sm font-bold text-[#34A853]">LIVE SYNC</span>
+          <div className="flex items-center gap-4">
+            {/* Unit Preference Toggle (Miles vs Kilometers) */}
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl border border-gray-200">
+              <button
+                onClick={() => handleToggleUnit('mi')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  distanceUnit === 'mi'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Miles (mi)
+              </button>
+              <button
+                onClick={() => handleToggleUnit('km')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  distanceUnit === 'km'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Kilometers (km)
+              </button>
             </div>
-          )}
-          
-          {connectionStatus === 'local' && (
-             <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200 transition-colors">
-              <CloudOff size={16} className="text-gray-500" />
-              <span className="text-sm font-bold text-gray-500">OFFLINE</span>
-            </div>
-          )}
 
-           {connectionStatus === 'connecting' && (
-             <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 transition-colors">
-              <CloudLightning size={16} className="text-blue-500 animate-pulse" />
-              <span className="text-sm font-bold text-blue-500">CONNECTING...</span>
-            </div>
-          )}
+            {/* Status Badge */}
+            {connectionStatus === 'live' && (
+              <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-100 transition-colors">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span className="text-sm font-bold text-[#34A853]">LIVE SYNC</span>
+              </div>
+            )}
+            
+            {connectionStatus === 'local' && (
+               <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200 transition-colors">
+                <CloudOff size={16} className="text-gray-500" />
+                <span className="text-sm font-bold text-gray-500">OFFLINE</span>
+              </div>
+            )}
+
+             {connectionStatus === 'connecting' && (
+               <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 transition-colors">
+                <CloudLightning size={16} className="text-blue-500 animate-pulse" />
+                <span className="text-sm font-bold text-blue-500">CONNECTING...</span>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* MULTI-PAGE NAVIGATION TABS (GitHub Pages & SPA compatible) */}
@@ -249,6 +303,17 @@ const App: React.FC = () => {
             }`}
           >
             <LayoutDashboard size={18} /> Race Dashboard
+          </button>
+
+          <button
+            onClick={() => navigateToTab('weekly')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'weekly'
+                ? 'bg-[#4285F4] text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            <Calendar size={18} /> Weekly Leaderboard
           </button>
 
           <button
@@ -312,34 +377,27 @@ const App: React.FC = () => {
             />
 
             {/* Stats Dashboard */}
-            <DashboardStats totalSteps={totalSteps} activeUserCount={users.length} />
+            <DashboardStats totalSteps={totalSteps} activeUserCount={users.length} distanceUnit={distanceUnit} />
 
-            {/* Map */}
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                 <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                     <div>
-                        <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider">Live Route Map</h3>
-                        <span className="text-xs text-gray-400">Powered by Leaflet</span>
-                     </div>
-                     
-                     <div className="flex bg-gray-100 p-1 rounded-xl">
-                        <button 
-                            onClick={() => setMapViewMode('global')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mapViewMode === 'global' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            <Globe size={16} />
-                            Route View
-                        </button>
-                        <button 
-                            onClick={() => setMapViewMode('local')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${mapViewMode === 'local' ? 'bg-white text-[#4285F4] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            <Navigation size={16} />
-                            Local View
-                        </button>
-                     </div>
-                 </div>
-                 <RaceMap progressPercentage={progressPercentage} viewMode={mapViewMode} />
+            {/* Global Accenture Office Map & 35M Step Goal */}
+            <GlobalOfficeMap teams={teams} users={users} />
+
+            {/* Community Photo & Selfie Banner */}
+            <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-3xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl text-amber-100 text-xl">
+                  📸
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-base text-white">Share Your Walking Selfies & Team Pictures!</h4>
+                  <p className="text-amber-100 text-xs mt-0.5">
+                    Post your photos in team chat for bonus points, weekly shoutouts, and a chance to win extra prizes.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white text-gray-900 text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm whitespace-nowrap">
+                🌟 Bonus Points & Shoutouts
+              </div>
             </div>
 
             {/* Participant Step Logger */}
@@ -352,21 +410,26 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: TEAM LEADERBOARD PAGE */}
-        {activeTab === 'teams' && (
-          <TeamLeaderboardPage teams={teams} users={users} />
+        {/* TAB 2: WEEKLY LEADERBOARD PAGE */}
+        {activeTab === 'weekly' && (
+          <WeeklyLeaderboardPage users={users} teams={teams} distanceUnit={distanceUnit} />
         )}
 
-        {/* TAB 3: INDIVIDUAL LEADERBOARD PAGE */}
+        {/* TAB 3: TEAM LEADERBOARD PAGE */}
+        {activeTab === 'teams' && (
+          <TeamLeaderboardPage teams={teams} users={users} distanceUnit={distanceUnit} />
+        )}
+
+        {/* TAB 4: INDIVIDUAL LEADERBOARD PAGE */}
         {activeTab === 'individuals' && (
-          <IndividualLeaderboardPage users={users} teams={teams} />
+          <IndividualLeaderboardPage users={users} teams={teams} distanceUnit={distanceUnit} />
         )}
 
         {/* Footer Actions */}
         <ReportGenerator users={users} totalSteps={totalSteps} />
 
         <footer className="text-center text-gray-400 text-sm pt-12 pb-8">
-           <p className="mb-4">© 2024 Tea&O • Internal Step Challenge</p>
+           <p className="mb-4 font-medium text-gray-500">© 2026 Inclusion & Diversity + Care • AxG Stepathon</p>
            
            {/* Danger Zone */}
            <button 

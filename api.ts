@@ -158,11 +158,14 @@ export const api = {
   },
 
   // Create a new Team (Admin only)
-  async addTeam(name: string, color: string, iconId: string): Promise<Team | null> {
+  async addTeam(name: string, color: string, iconId: string, location?: string, lat?: number, lng?: number): Promise<Team | null> {
     const newTeamBase = {
       name,
       color: color || '#4285F4',
       iconId: iconId || 'trophy',
+      location: location || '',
+      ...(typeof lat === 'number' ? { lat } : {}),
+      ...(typeof lng === 'number' ? { lng } : {})
     };
     try {
       const docRef = await addDoc(collection(db, TEAMS_COLLECTION), {

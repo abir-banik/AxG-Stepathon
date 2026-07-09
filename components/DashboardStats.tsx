@@ -5,10 +5,18 @@ import { Users } from 'lucide-react';
 interface DashboardStatsProps {
   totalSteps: number;
   activeUserCount: number;
+  distanceUnit?: 'mi' | 'km';
 }
 
-const DashboardStats: React.FC<DashboardStatsProps> = ({ totalSteps, activeUserCount }) => {
+const DashboardStats: React.FC<DashboardStatsProps> = ({ totalSteps, activeUserCount, distanceUnit = 'mi' }) => {
   const totalMiles = totalSteps / STEPS_PER_MILE;
+  const isKm = distanceUnit === 'km';
+  const displayDistance = isKm ? (totalMiles * 1.60934).toFixed(1) : totalMiles.toFixed(1);
+  const unitLabel = isKm ? 'km' : 'mi';
+  const targetDistance = isKm 
+    ? (TOTAL_GOAL_MILES * 1.60934).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' km'
+    : TOTAL_GOAL_MILES.toLocaleString() + ' mi';
+
   const progressPercent = Math.min((totalSteps / TOTAL_GOAL_STEPS) * 100, 100);
 
   return (
@@ -28,12 +36,12 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ totalSteps, activeUserC
         </div>
       </div>
 
-      {/* Miles Covered */}
+      {/* Miles/KM Covered */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider">Distance Covered</h3>
-        <p className="text-4xl font-normal text-gray-800 mt-2">{totalMiles.toFixed(1)} <span className="text-xl text-gray-400">mi</span></p>
+        <p className="text-4xl font-normal text-gray-800 mt-2">{displayDistance} <span className="text-xl text-gray-400">{unitLabel}</span></p>
         <div className="mt-2 flex items-center text-sm text-gray-400">
-           <span className="text-red-500 font-medium mr-1">Target:</span> {TOTAL_GOAL_MILES.toLocaleString()} mi
+           <span className="text-[#4285F4] font-medium mr-1">Target:</span> {targetDistance}
         </div>
       </div>
 
