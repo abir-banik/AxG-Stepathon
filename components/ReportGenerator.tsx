@@ -54,6 +54,7 @@ ${bottom ? `Come on ${getDisplayName(bottom)}, pick up the pace! (${(bottom.step
 
   return (
     <div className="flex flex-wrap gap-4 mt-8 justify-center">
+      {/* commented out for 2026 AxG stepathon
       <button 
         onClick={handleCopy}
         className="flex items-center gap-2 bg-[#4285F4] hover:bg-blue-600 text-white px-6 py-2 rounded-full font-medium transition-colors shadow-sm"
@@ -61,7 +62,9 @@ ${bottom ? `Come on ${getDisplayName(bottom)}, pick up the pace! (${(bottom.step
         <ClipboardCopy size={18} />
         {copied ? 'Copied!' : 'Share Update'}
       </button>
+      */}
 
+      {/* commented out for 2026 AxG stepathon
        <button 
         onClick={downloadData}
         className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-full font-medium transition-colors border border-gray-300 shadow-sm"
@@ -69,6 +72,7 @@ ${bottom ? `Come on ${getDisplayName(bottom)}, pick up the pace! (${(bottom.step
         <Download size={18} />
         Export Data
       </button>
+      */}
     </div>
   );
 };

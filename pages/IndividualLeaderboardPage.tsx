@@ -35,21 +35,42 @@ const IndividualLeaderboardPage: React.FC<IndividualLeaderboardPageProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
+    <div className="space-y-6 animate-fade-in">
       
-      {/* Header & Controls Bar */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold text-gray-900">Individual Leaderboard</h2>
-            <span className="bg-blue-50 text-[#4285F4] text-xs font-extrabold px-3 py-1 rounded-full border border-blue-100">
-              {sortedUsers.length} Racers
-            </span>
+      {/* Page Header Banner */}
+      <div 
+        className="rounded-3xl p-8 text-white shadow-xl relative overflow-hidden mb-6"
+        style={{ background: 'linear-gradient(135deg, #4285F4 0%, #EA4335 30%, #FBBC05 70%, #34A853 100%)' }}
+      >
+        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 bg-white/25 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider text-white shadow-sm">
+              <Trophy size={14} /> Individual Competition
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-md">Individual Leaderboard</h2>
+            <p className="text-white/90 text-sm max-w-xl font-medium drop-shadow-sm">
+              Overall step and distance rankings across all teams. Track individual achievements and milestones.
+            </p>
           </div>
-          <p className="text-gray-500 text-xs mt-1">Overall step and distance rankings across all teams.</p>
+
+          <div className="flex bg-white/15 backdrop-blur-md rounded-2xl p-4 gap-6 text-center border border-white/20 shadow-sm">
+            <div>
+              <div className="text-2xl font-black drop-shadow-sm">{users.length}</div>
+              <div className="text-[11px] text-white/90 uppercase font-black tracking-wider">Total Racers</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Controls Bar */}
+      <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+          <Search size={16} className="text-emerald-600" /> Filter Racers:
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           {/* Search */}
           <div className="relative w-full sm:w-64">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -58,7 +79,7 @@ const IndividualLeaderboardPage: React.FC<IndividualLeaderboardPageProps> = ({
               placeholder="Search racer or team..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 text-xs rounded-xl pl-9 pr-3.5 py-2.5 focus:ring-2 focus:ring-[#4285F4] outline-none font-medium"
+              className="w-full bg-gray-50 border border-gray-200 text-xs rounded-xl pl-9 pr-3.5 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none font-medium"
             />
           </div>
 
@@ -66,7 +87,7 @@ const IndividualLeaderboardPage: React.FC<IndividualLeaderboardPageProps> = ({
           <select
             value={selectedTeamId}
             onChange={(e) => setSelectedTeamId(e.target.value)}
-            className="w-full sm:w-auto bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-[#4285F4] cursor-pointer"
+            className="w-full sm:w-auto bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="ALL">All Teams ({users.length})</option>
             {teams.map(t => (

@@ -18,7 +18,7 @@ export const EVENT_WEEKS: WeekDefinition[] = [
   { weekNumber: 1, label: "Week 1", startDate: "July 13", endDate: "July 19" },
   { weekNumber: 2, label: "Week 2", startDate: "July 20", endDate: "July 26" },
   { weekNumber: 3, label: "Week 3", startDate: "July 27", endDate: "August 2" },
-  { weekNumber: 4, label: "Week 4", startDate: "August 3", endDate: "August 7" }
+  { weekNumber: 4, label: "Week 4", startDate: "August 3", endDate: "August 5" }
 ];
 
 export interface AccentureOffice {
@@ -31,6 +31,7 @@ export interface AccentureOffice {
 }
 
 export const ACCENTURE_GLOBAL_OFFICES: AccentureOffice[] = [
+  { id: 'na', city: 'N/A', country: 'N/A', displayName: 'N/A', lat: 0, lng: 0 },
   { id: 'manila', city: 'Manila', country: 'Philippines', displayName: 'Manila, Philippines', lat: 14.5547, lng: 121.0244 },
   { id: 'chicago', city: 'Chicago, IL', country: 'United States', displayName: 'Chicago, IL (US)', lat: 41.8781, lng: -87.6298 },
   { id: 'bangalore', city: 'Bangalore', country: 'India', displayName: 'Bangalore, India', lat: 12.9716, lng: 77.5946 },

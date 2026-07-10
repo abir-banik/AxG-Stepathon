@@ -159,7 +159,7 @@ const GlobalOfficeMap: React.FC<GlobalOfficeMapProps> = ({
 
               {/* Team Office Pins */}
               {processedTeams.map((team) => {
-                if (team.lat === undefined || team.lng === undefined) return null;
+                if (team.lat === undefined || team.lng === undefined || team.location === 'N/A' || team.location === '') return null;
 
                 const locKey = `${team.lat.toFixed(3)},${team.lng.toFixed(3)}`;
                 const countAtLoc = locationCounts[locKey] || 0;

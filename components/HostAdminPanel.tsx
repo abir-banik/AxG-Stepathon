@@ -41,11 +41,26 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   const [passcode, setPasscode] = useState('');
   const [passError, setPassError] = useState(false);
 
-  // Unified Team & Members Creation State
-  const [teamName, setTeamName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(TEAM_COLORS[0].hex);
-  const [selectedOfficeId, setSelectedOfficeId] = useState<string>(ACCENTURE_GLOBAL_OFFICES[0].id);
-  const [memberInputs, setMemberInputs] = useState<string[]>(['', '']); // Default 2 rows
+  // Unified Multiple Teams & Members Creation State
+  interface TeamCreationState {
+    id: string;
+    name: string;
+    color: string;
+    officeId: string;
+    memberInputs: string[];
+  }
+
+  const createInitialTeamState = (): TeamCreationState => ({
+    id: `form-team-${Math.random()}`,
+    name: '',
+    color: TEAM_COLORS[0].hex,
+    officeId: ACCENTURE_GLOBAL_OFFICES[0].id,
+    memberInputs: ['', '', '', '', ''] // Default 5 rows
+  });
+
+  const [teamsToCreate, setTeamsToCreate] = useState<TeamCreationState[]>([
+    createInitialTeamState()
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -59,52 +74,94 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
     }
   };
 
-  const handleAddMemberRow = () => {
-    setMemberInputs(prev => [...prev, '']);
+  const handleAddTeamForm = () => {
+    if (teamsToCreate.length >= 5) {
+      alert("You can create up to 5 teams at a time.");
+      return;
+    }
+    setTeamsToCreate(prev => [...prev, createInitialTeamState()]);
   };
 
-  const handleRemoveMemberRow = (index: number) => {
-    if (memberInputs.length <= 1) return;
-    setMemberInputs(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveTeamForm = (index: number) => {
+    if (teamsToCreate.length <= 1) return;
+    setTeamsToCreate(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleMemberInputChange = (index: number, value: string) => {
-    setMemberInputs(prev => {
+  const handleTeamFieldChange = (index: number, field: keyof TeamCreationState, value: any) => {
+    setTeamsToCreate(prev => {
       const updated = [...prev];
-      updated[index] = value;
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleAddMemberRow = (teamIndex: number) => {
+    setTeamsToCreate(prev => {
+      const updated = [...prev];
+      updated[teamIndex] = {
+        ...updated[teamIndex],
+        memberInputs: [...updated[teamIndex].memberInputs, '']
+      };
+      return updated;
+    });
+  };
+
+  const handleRemoveMemberRow = (teamIndex: number, memberIndex: number) => {
+    setTeamsToCreate(prev => {
+      const updated = [...prev];
+      if (updated[teamIndex].memberInputs.length <= 1) return prev;
+      updated[teamIndex] = {
+        ...updated[teamIndex],
+        memberInputs: updated[teamIndex].memberInputs.filter((_, i) => i !== memberIndex)
+      };
+      return updated;
+    });
+  };
+
+  const handleMemberInputChange = (teamIndex: number, memberIndex: number, value: string) => {
+    setTeamsToCreate(prev => {
+      const updated = [...prev];
+      const memberInputs = [...updated[teamIndex].memberInputs];
+      memberInputs[memberIndex] = value;
+      updated[teamIndex] = {
+        ...updated[teamIndex],
+        memberInputs
+      };
       return updated;
     });
   };
 
   const handleBatchCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamName.trim()) return;
+    const validTeams = teamsToCreate.filter(t => t.name.trim().length > 0);
+    if (validTeams.length === 0) return;
 
     setIsSubmitting(true);
     try {
-      const office = ACCENTURE_GLOBAL_OFFICES.find(o => o.id === selectedOfficeId) || ACCENTURE_GLOBAL_OFFICES[0];
-      
-      // 1. Create Team with Office Location Coordinates
-      const createdTeam = await onAddTeam(
-        teamName.trim(), 
-        selectedColor, 
-        'trophy', 
-        office.displayName, 
-        office.lat, 
-        office.lng
-      );
-      const teamId = createdTeam?.id || `team-${Date.now()}`;
-      const actualTeamName = createdTeam?.name || teamName.trim();
+      for (const teamForm of validTeams) {
+        const office = ACCENTURE_GLOBAL_OFFICES.find(o => o.id === teamForm.officeId) || ACCENTURE_GLOBAL_OFFICES[0];
+        
+        // 1. Create Team with Office Location Coordinates
+        const createdTeam = await onAddTeam(
+          teamForm.name.trim(), 
+          teamForm.color, 
+          'trophy', 
+          office.displayName, 
+          office.lat, 
+          office.lng
+        );
+        const teamId = createdTeam?.id || `team-${Date.now()}`;
+        const actualTeamName = createdTeam?.name || teamForm.name.trim();
 
-      // 2. Add all non-empty members to the created team at once
-      const validMembers = memberInputs.map(m => m.trim()).filter(m => m.length > 0);
-      for (const memberName of validMembers) {
-        await onAddParticipant(memberName, teamId, actualTeamName, 'smile');
+        // 2. Add all non-empty members to the created team at once
+        const validMembers = teamForm.memberInputs.map(m => m.trim()).filter(m => m.length > 0);
+        for (const memberName of validMembers) {
+          await onAddParticipant(memberName, teamId, actualTeamName, 'smile');
+        }
       }
 
       // Reset form
-      setTeamName('');
-      setMemberInputs(['', '']);
+      setTeamsToCreate([createInitialTeamState()]);
     } finally {
       setIsSubmitting(false);
     }
@@ -173,108 +230,142 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
           <span className="text-xs text-gray-400 font-medium">Host Only</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left: Team Name & Color */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
-                1. Team Name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Boba Striders"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                2. Team Badge Color
-              </label>
-              <div className="flex flex-wrap gap-2.5">
-                {TEAM_COLORS.map(c => (
-                  <button
-                    key={c.hex}
-                    type="button"
-                    onClick={() => setSelectedColor(c.hex)}
-                    className={`w-8 h-8 rounded-full transition-all ${c.bg} ${selectedColor === c.hex ? 'ring-4 ring-blue-300 scale-110 shadow' : 'opacity-80 hover:opacity-100'}`}
-                    title={c.name}
-                  />
-                ))}
+        <div className="space-y-6">
+          {teamsToCreate.map((teamForm, teamIdx) => (
+            <div key={teamForm.id} className="relative bg-[#f8f9fa] border border-blue-100 rounded-2xl p-5 space-y-4 shadow-sm">
+              {teamsToCreate.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTeamForm(teamIdx)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors text-xs font-bold flex items-center gap-1 border border-red-100 bg-white"
+                  title="Remove Team Config"
+                >
+                  <X size={14} /> Remove Team #{teamIdx + 1}
+                </button>
+              )}
+              
+              <div className="text-xs font-black text-[#4285F4] uppercase tracking-wider">
+                🏷️ Team #{teamIdx + 1} Setup
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                <MapPin size={14} className="text-[#4285F4]" /> 3. Accenture Office Location (Map Pin)
-              </label>
-              <select
-                value={selectedOfficeId}
-                onChange={(e) => setSelectedOfficeId(e.target.value)}
-                className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
-              >
-                {ACCENTURE_GLOBAL_OFFICES.map(office => (
-                  <option key={office.id} value={office.id}>
-                    📍 {office.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left: Team Name & Color & Office location */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-wider">
+                      Team Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Boba Striders"
+                      value={teamForm.name}
+                      onChange={(e) => handleTeamFieldChange(teamIdx, 'name', e.target.value)}
+                      className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
+                      required={teamIdx === 0}
+                    />
+                  </div>
 
-          {/* Right: Batch Member List */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide">
-                4. Team Members (Add all at once)
-              </label>
-              <button
-                type="button"
-                onClick={handleAddMemberRow}
-                className="text-xs font-bold text-[#4285F4] hover:text-blue-700 flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-blue-200 shadow-sm transition-all"
-              >
-                <Plus size={14} /> Add Member
-              </button>
-            </div>
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 mb-2 uppercase tracking-wider">
+                      Badge Color
+                    </label>
+                    <div className="flex flex-wrap gap-2.5">
+                      {TEAM_COLORS.map(c => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          onClick={() => handleTeamFieldChange(teamIdx, 'color', c.hex)}
+                          className={`w-7 h-7 rounded-full transition-all ${c.bg} ${teamForm.color === c.hex ? 'ring-4 ring-blue-300 scale-110 shadow' : 'opacity-80 hover:opacity-100'}`}
+                          title={c.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-              {memberInputs.map((val, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-400 w-5 text-right">{idx + 1}.</span>
-                  <input
-                    type="text"
-                    placeholder={`Member ${idx + 1} Name...`}
-                    value={val}
-                    onChange={(e) => handleMemberInputChange(idx, e.target.value)}
-                    className="flex-1 bg-white border border-gray-200 text-sm rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none font-medium shadow-sm"
-                  />
-                  {memberInputs.length > 1 && (
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+                      <MapPin size={13} className="text-[#4285F4]" /> Accenture Office Location
+                    </label>
+                    <select
+                      value={teamForm.officeId}
+                      onChange={(e) => handleTeamFieldChange(teamIdx, 'officeId', e.target.value)}
+                      className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
+                    >
+                      {ACCENTURE_GLOBAL_OFFICES.map(office => (
+                        <option key={office.id} value={office.id}>
+                          📍 {office.displayName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Right: Batch Member List */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
+                      Team Members
+                    </label>
                     <button
                       type="button"
-                      onClick={() => handleRemoveMemberRow(idx)}
-                      className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remove row"
+                      onClick={() => handleAddMemberRow(teamIdx)}
+                      className="text-[10px] font-bold text-[#4285F4] hover:text-blue-700 flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-sm transition-all"
                     >
-                      <X size={16} />
+                      <Plus size={12} /> Add Member Slot
                     </button>
-                  )}
+                  </div>
+
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {teamForm.memberInputs.map((val, memberIdx) => (
+                      <div key={memberIdx} className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 w-5 text-right">{memberIdx + 1}.</span>
+                        <input
+                          type="text"
+                          placeholder={`Member ${memberIdx + 1} Name...`}
+                          value={val}
+                          onChange={(e) => handleMemberInputChange(teamIdx, memberIdx, e.target.value)}
+                          className="flex-1 bg-white border border-gray-200 text-sm rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none font-medium shadow-sm"
+                        />
+                        {teamForm.memberInputs.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMemberRow(teamIdx, memberIdx)}
+                            className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Remove row"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
 
+        {/* Add Another Team Form Button */}
+        {teamsToCreate.length < 5 && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleAddTeamForm}
+              className="w-full border-2 border-dashed border-[#4285F4]/30 hover:border-[#4285F4] text-[#4285F4] hover:bg-blue-50/50 py-3.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Plus size={16} /> Add Another Team to Batch ({teamsToCreate.length}/5)
+            </button>
+          </div>
+        )}
+
         {/* Submit Button */}
-        <div className="pt-2">
+        <div className="pt-4 border-t border-blue-100">
           <button
             type="submit"
-            disabled={isSubmitting || !teamName.trim()}
+            disabled={isSubmitting || !teamsToCreate.some(t => t.name.trim().length > 0)}
             className="w-full bg-[#4285F4] hover:bg-blue-600 text-white font-bold text-sm py-3.5 rounded-xl transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <UserPlus size={18} /> {isSubmitting ? 'Creating Team & Assigning Members...' : 'Create Team & Add All Members'}
+            <UserPlus size={18} /> {isSubmitting ? 'Creating Teams & Assigning Members...' : 'Create Batch of Teams & Add Members'}
           </button>
         </div>
       </form>
