@@ -67,6 +67,8 @@ const saveLocalTeams = (teams: Team[]) => {
   teamListeners.forEach(cb => cb(teams));
 };
 
+const GOOGLE_COLORS = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#A142F4', '#FF6D00', '#00BFA5', '#F4511E'];
+
 const startTeamsSnapshotListener = () => {
   if (unsubscribeTeamsSnapshot) unsubscribeTeamsSnapshot();
 
@@ -74,29 +76,67 @@ const startTeamsSnapshotListener = () => {
   unsubscribeTeamsSnapshot = onSnapshot(q, async (snapshot) => {
     const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Team);
 
-    // Auto-sync: If Cloud Firestore teams collection is empty but local storage has teams, push local teams to Cloud!
+    // Auto-heal: If Cloud Firestore teams collection is empty, rebuild and push all teams from racers data!
     if (teams.length === 0) {
-      const localTeams = getLocalTeams();
-      if (localTeams.length > 0) {
-        try {
+      try {
+        let teamsToSync: { id: string; name: string; color: string; iconId: string; location: string }[] = [];
+        const localTeams = getLocalTeams();
+
+        if (localTeams.length > 0) {
+          teamsToSync = localTeams.map(t => ({
+            id: t.id || `team-${t.name.toLowerCase().replace(/\s+/g, '-')}`,
+            name: t.name,
+            color: t.color || '#4285F4',
+            iconId: t.iconId || 'trophy',
+            location: t.location || 'na'
+          }));
+        } else {
+          // Extract team names from Cloud Firestore racers collection
+          const racersSnap = await getDocs(collection(db, RACERS_COLLECTION));
+          const teamMap = new Map<string, { id: string; name: string }>();
+          
+          racersSnap.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            const tn = data.teamName?.trim();
+            if (tn && tn !== 'N/A' && tn !== 'Independent') {
+              const tid = data.teamId || `team-${tn.toLowerCase().replace(/\s+/g, '-')}`;
+              if (!teamMap.has(tn)) {
+                teamMap.set(tn, { id: tid, name: tn });
+              }
+            }
+          });
+
+          let colorIdx = 0;
+          teamMap.forEach((val) => {
+            teamsToSync.push({
+              id: val.id,
+              name: val.name,
+              color: GOOGLE_COLORS[colorIdx % GOOGLE_COLORS.length],
+              iconId: 'trophy',
+              location: 'na'
+            });
+            colorIdx++;
+          });
+        }
+
+        if (teamsToSync.length > 0) {
           const batch = writeBatch(db);
-          localTeams.forEach((t) => {
-            const teamId = t.id || `team-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-            const teamRef = doc(db, TEAMS_COLLECTION, teamId);
+          teamsToSync.forEach((t) => {
+            const teamRef = doc(db, TEAMS_COLLECTION, t.id);
             batch.set(teamRef, {
               name: t.name,
-              color: t.color || '#4285F4',
-              iconId: t.iconId || 'trophy',
-              location: t.location || 'na',
+              color: t.color,
+              iconId: t.iconId,
+              location: t.location,
               createdAt: serverTimestamp()
-            });
+            }, { merge: true });
           });
           await batch.commit();
-          console.log(`Auto-synced ${localTeams.length} local teams to Cloud Firestore!`);
+          console.log(`Auto-reconstructed and synced ${teamsToSync.length} teams to Cloud Firestore!`);
           return;
-        } catch (e) {
-          console.warn("Failed to auto-sync local teams to Cloud Firestore", e);
         }
+      } catch (e) {
+        console.warn("Failed to auto-reconstruct teams in Cloud Firestore", e);
       }
     }
 
