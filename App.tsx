@@ -14,7 +14,8 @@ import TeamLeaderboard from './components/TeamLeaderboard';
 import TeamLeaderboardPage from './pages/TeamLeaderboardPage';
 import IndividualLeaderboardPage from './pages/IndividualLeaderboardPage';
 import WeeklyLeaderboardPage from './pages/WeeklyLeaderboardPage';
-import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar } from 'lucide-react';
+import FaqPage from './components/FaqPage';
+import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle } from 'lucide-react';
 import { api } from './api';
 
 const App: React.FC = () => {
@@ -27,11 +28,12 @@ const App: React.FC = () => {
   const [mapViewMode, setMapViewMode] = useState<'global' | 'local'>('global');
   
   // Navigation State (GitHub Pages compatible Hash Routing)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'weekly' | 'teams' | 'individuals'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'weekly' | 'teams' | 'individuals' | 'faq'>(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash.includes('weekly')) return 'weekly';
     if (hash.includes('teams')) return 'teams';
     if (hash.includes('individuals') || hash.includes('racers')) return 'individuals';
+    if (hash.includes('faq') || hash.includes('guide')) return 'faq';
     return 'dashboard';
   });
 
@@ -85,17 +87,19 @@ const App: React.FC = () => {
       if (hash.includes('weekly')) setActiveTab('weekly');
       else if (hash.includes('teams')) setActiveTab('teams');
       else if (hash.includes('individuals') || hash.includes('racers')) setActiveTab('individuals');
+      else if (hash.includes('faq') || hash.includes('guide')) setActiveTab('faq');
       else setActiveTab('dashboard');
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const navigateToTab = (tab: 'dashboard' | 'weekly' | 'teams' | 'individuals') => {
+  const navigateToTab = (tab: 'dashboard' | 'weekly' | 'teams' | 'individuals' | 'faq') => {
     setActiveTab(tab);
     if (tab === 'weekly') window.location.hash = '/weekly';
     else if (tab === 'teams') window.location.hash = '/teams';
     else if (tab === 'individuals') window.location.hash = '/individuals';
+    else if (tab === 'faq') window.location.hash = '/faq';
     else window.location.hash = '/';
   };
 
@@ -337,6 +341,17 @@ const App: React.FC = () => {
           >
             <Trophy size={18} /> Individual Leaderboard
           </button>
+
+          <button
+            onClick={() => navigateToTab('faq')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'faq'
+                ? 'bg-[#4285F4] text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            <HelpCircle size={18} /> FAQ & Guide
+          </button>
         </nav>
 
         {/* Milestone Modal */}
@@ -423,6 +438,11 @@ const App: React.FC = () => {
         {/* TAB 4: INDIVIDUAL LEADERBOARD PAGE */}
         {activeTab === 'individuals' && (
           <IndividualLeaderboardPage users={users} teams={teams} distanceUnit={distanceUnit} />
+        )}
+
+        {/* TAB 5: FAQ & GUIDE PAGE */}
+        {activeTab === 'faq' && (
+          <FaqPage />
         )}
 
         {/* Footer Actions */}
