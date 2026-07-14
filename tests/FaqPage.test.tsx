@@ -52,4 +52,14 @@ describe('FaqPage Component', () => {
     fireEvent.click(ruleQuestion);
     expect(isTextPresent()).toBeNull();
   });
+
+  it('renders leaderboards explanation FAQ item', () => {
+    render(<FaqPage />);
+
+    const leaderboardQuestion = screen.getByText('How do the different Leaderboard pages work?');
+    expect(leaderboardQuestion).toBeInTheDocument();
+
+    fireEvent.click(leaderboardQuestion);
+    expect(screen.getByText(/Weekly Leaderboard:/i)).toBeInTheDocument();
+  });
 });

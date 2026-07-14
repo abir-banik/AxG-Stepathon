@@ -93,6 +93,30 @@ const FAQ_ITEMS: FaqItem[] = [
     )
   },
   {
+    id: 'leaderboard-pages',
+    category: 'rules',
+    question: 'How do the different Leaderboard pages work?',
+    answer: (
+      <div className="space-y-3">
+        <p>You can track competition standings across 3 distinct live Leaderboard pages in the top navigation bar:</p>
+        <ul className="space-y-2 text-gray-600">
+          <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Trophy size={14} className="text-[#4285F4]" /> Team Leaderboard:</strong>
+            Displays overall team step totals, active member counts, and team rankings.
+          </li>
+          <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Calendar size={14} className="text-[#34A853]" /> Weekly Leaderboard:</strong>
+            Breaks down performance by week (Week 1–4) so you can track weekly team leaders and week-over-week progress.
+          </li>
+          <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Sparkles size={14} className="text-[#FBBC05]" /> Individual Leaderboard:</strong>
+            Highlights the top individual steppers across the entire global event, milestone badges, and office locations!
+          </li>
+        </ul>
+      </div>
+    )
+  },
+  {
     id: 'community-chat',
     category: 'community',
     question: 'Where can I connect and share updates with other steppers?',
