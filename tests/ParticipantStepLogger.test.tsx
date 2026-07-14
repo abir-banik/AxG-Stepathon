@@ -134,7 +134,35 @@ describe('ParticipantStepLogger Component', () => {
     });
   });
 
-  it('validates date picker does not allow future dates', () => {
+  it('automatically calculates week from date input', async () => {
+    const onAddSteps = vi.fn();
+    render(
+      <ParticipantStepLogger
+        users={mockUsers}
+        teams={mockTeams}
+        onAddSteps={onAddSteps}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    // Click on Alice Smith
+    fireEvent.click(screen.getByText('Alice Smith'));
+
+    const dateInput = screen.getByTitle('Select date of steps (July 13 to August 5 only)');
+    const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
+
+    // Select date in Week 1 (July 13, 2026)
+    fireEvent.change(dateInput, { target: { value: '2026-07-13' } });
+    fireEvent.change(stepInput, { target: { value: '8000' } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(onAddSteps).toHaveBeenCalledWith('user-1', 8000, 1, '2026-07-13');
+    });
+  });
+
+  it('validates date picker only allows dates from July 13th to August 5th', () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
     render(
@@ -150,13 +178,17 @@ describe('ParticipantStepLogger Component', () => {
     fireEvent.click(screen.getByText('Alice Smith'));
 
     // Date picker input
-    const dateInput = screen.getByTitle('Select date of steps (past or today only)') as HTMLInputElement;
+    const dateInput = screen.getByTitle('Select date of steps (July 13 to August 5 only)') as HTMLInputElement;
 
-    // Set future date (e.g., year 2050)
-    fireEvent.change(dateInput, { target: { value: '2050-12-31' } });
+    // Test date before July 13th
+    fireEvent.change(dateInput, { target: { value: '2026-07-10' } });
+    expect(alertMock).toHaveBeenCalledWith('Steps can only be logged starting from July 13th, 2026.');
+    expect(dateInput.value).not.toBe('2026-07-10');
 
-    expect(alertMock).toHaveBeenCalledWith('You can only log steps for today or a past date.');
-    expect(dateInput.value).not.toBe('2050-12-31');
+    // Test date after August 5th
+    fireEvent.change(dateInput, { target: { value: '2026-08-10' } });
+    expect(alertMock).toHaveBeenCalledWith('Steps can only be logged up to August 5th, 2026.');
+    expect(dateInput.value).not.toBe('2026-08-10');
 
     alertMock.mockRestore();
   });

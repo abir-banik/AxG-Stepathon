@@ -24,20 +24,38 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const EVENT_START_DATE = '2026-07-13';
+  const EVENT_END_DATE = '2026-08-05';
+
+  const computeWeekFromDate = (dateStr: string): number => {
+    if (!dateStr || dateStr <= '2026-07-19') return 1;
+    if (dateStr <= '2026-07-26') return 2;
+    if (dateStr <= '2026-08-02') return 3;
+    return 4;
+  };
+
   // Form States
   const [stepInput, setStepInput] = useState('');
-  const [selectedWeek, setSelectedWeek] = useState<number>(1);
   const todayStr = new Date().toISOString().split('T')[0];
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const initialDate = todayStr < EVENT_START_DATE ? EVENT_START_DATE : (todayStr > EVENT_END_DATE ? EVENT_END_DATE : todayStr);
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
+  const [selectedWeek, setSelectedWeek] = useState<number>(computeWeekFromDate(initialDate));
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (val > todayStr) {
+    let finalDate = val;
+    if (val < EVENT_START_DATE) {
+      alert("Steps can only be logged starting from July 13th, 2026.");
+      finalDate = EVENT_START_DATE;
+    } else if (val > EVENT_END_DATE) {
+      alert("Steps can only be logged up to August 5th, 2026.");
+      finalDate = EVENT_END_DATE;
+    } else if (val > todayStr) {
       alert("You can only log steps for today or a past date.");
-      setSelectedDate(todayStr);
-    } else {
-      setSelectedDate(val);
+      finalDate = todayStr < EVENT_START_DATE ? EVENT_START_DATE : todayStr;
     }
+    setSelectedDate(finalDate);
+    setSelectedWeek(computeWeekFromDate(finalDate));
   };
 
   const weeksArray = Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1);
@@ -130,32 +148,34 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
           {/* Form */}
           <form onSubmit={handleStepSubmit} className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-3">
-              {/* Week Selector */}
+              {/* Date Picker (First) */}
+              <div className="relative">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  min={EVENT_START_DATE}
+                  max={EVENT_END_DATE}
+                  className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
+                  title="Select date of steps (July 13 to August 5 only)"
+                />
+              </div>
+
+              {/* Week Display (Auto-computed, Disabled) */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Calendar size={18} className="text-gray-400" />
                 </div>
                 <select
                   value={selectedWeek}
-                  onChange={(e) => setSelectedWeek(parseInt(e.target.value))}
-                  className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl pl-10 pr-8 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
+                  disabled
+                  className="h-full bg-gray-100 border border-gray-200 text-gray-500 text-sm font-bold rounded-xl pl-10 pr-8 py-3.5 outline-none shadow-sm cursor-not-allowed appearance-none"
+                  title="Week is automatically calculated based on selected date"
                 >
                   {weeksArray.map(w => (
                     <option key={w} value={w}>Week {w}</option>
                   ))}
                 </select>
-              </div>
-
-              {/* Date Picker (For retroactive step logging) */}
-              <div className="relative">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
-                  max={todayStr}
-                  title="Select date of steps (past or today only)"
-                />
               </div>
 
               {/* Step Input */}
