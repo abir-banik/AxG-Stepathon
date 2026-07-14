@@ -63,6 +63,17 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Quick Add Member State for existing teams
+  const [addingMemberTeamId, setAddingMemberTeamId] = useState<string | null>(null);
+  const [newMemberName, setNewMemberName] = useState<string>('');
+
+  const handleQuickAddMember = async (team: Team) => {
+    if (!newMemberName.trim()) return;
+    await onAddParticipant(newMemberName.trim(), team.id, team.name, 'smile');
+    setNewMemberName('');
+    setAddingMemberTeamId(null);
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (passcode.trim() === 'AxGstepathon2026') {
@@ -400,9 +411,59 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                     </button>
                   </div>
 
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                    {members.length} Assigned Member{members.length === 1 ? '' : 's'}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">
+                      {members.length} Assigned Member{members.length === 1 ? '' : 's'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddingMemberTeamId(addingMemberTeamId === team.id ? null : team.id);
+                        setNewMemberName('');
+                      }}
+                      className="text-[11px] font-bold text-[#4285F4] hover:text-blue-700 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                    >
+                      <Plus size={12} /> Add Member
+                    </button>
                   </div>
+
+                  {addingMemberTeamId === team.id && (
+                    <div className="flex items-center gap-1.5 bg-blue-50/70 p-2 rounded-xl border border-blue-100 shadow-sm animate-fade-in">
+                      <input
+                        type="text"
+                        placeholder="Member Name..."
+                        value={newMemberName}
+                        onChange={(e) => setNewMemberName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleQuickAddMember(team);
+                          }
+                        }}
+                        className="flex-1 bg-white border border-gray-200 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleQuickAddMember(team)}
+                        disabled={!newMemberName.trim()}
+                        className="bg-[#4285F4] hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddingMemberTeamId(null);
+                          setNewMemberName('');
+                        }}
+                        className="text-gray-400 hover:text-gray-600 p-1"
+                        title="Cancel"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
 
                   <ul className="space-y-1.5 max-h-40 overflow-y-auto">
                     {members.map(m => (
