@@ -187,4 +187,32 @@ describe('ParticipantStepLogger Component', () => {
 
     expect(onDeleteStep).toHaveBeenCalledWith('user-1', 1);
   });
+
+  it('filters by team and sorts roster alphabetically A-Z and Z-A', () => {
+    render(
+      <ParticipantStepLogger
+        users={mockUsers}
+        teams={mockTeams}
+        onAddSteps={vi.fn()}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    // Filter by team dropdown
+    const teamDropdown = screen.getAllByRole('combobox')[0];
+    expect(teamDropdown).toBeInTheDocument();
+
+    // Sort order dropdown (A-Z default)
+    const cardElements = screen.getAllByRole('button').map(b => b.textContent);
+    expect(cardElements[0]).toContain('Alice Smith');
+    expect(cardElements[1]).toContain('Bob Jones');
+
+    // Change sort order to Z-A
+    const sortDropdown = screen.getAllByRole('combobox')[1];
+    fireEvent.change(sortDropdown, { target: { value: 'name-desc' } });
+
+    const updatedCardElements = screen.getAllByRole('button').map(b => b.textContent);
+    expect(updatedCardElements[0]).toContain('Bob Jones');
+    expect(updatedCardElements[1]).toContain('Alice Smith');
+  });
 });

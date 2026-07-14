@@ -20,6 +20,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   onDeleteStep
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>('ALL');
+  const [sortOrder, setSortOrder] = useState<'name-asc' | 'name-desc'>('name-asc');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -41,13 +42,18 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
   const weeksArray = Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1);
 
-  // Filter Users by Team & Search
-  const filteredUsers = users.filter(u => {
-    const matchesTeam = selectedTeamId === 'ALL' || u.teamId === selectedTeamId || u.teamName === teams.find(t => t.id === selectedTeamId)?.name;
-    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (u.teamName && u.teamName.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesTeam && matchesSearch;
-  });
+  // Filter & Sort Users by Team, Search, and A-Z / Z-A Order
+  const filteredUsers = users
+    .filter(u => {
+      const matchesTeam = selectedTeamId === 'ALL' || u.teamId === selectedTeamId || u.teamName === teams.find(t => t.id === selectedTeamId)?.name;
+      const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            (u.teamName && u.teamName.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesTeam && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'name-desc') return b.name.localeCompare(a.name);
+      return a.name.localeCompare(b.name);
+    });
 
   const selectedUser = users.find(u => u.id === selectedUserId);
 
@@ -255,41 +261,52 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
       ) : (
         /* ROSTER EXPLORER (Select Participant) */
         <div className="space-y-6">
-          {/* Filters & Search */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-            {/* Team Filter Pills */}
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => setSelectedTeamId('ALL')}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${selectedTeamId === 'ALL' ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
-              >
-                All Teams ({users.length})
-              </button>
-              {teams.map(team => {
-                const count = users.filter(u => u.teamId === team.id || u.teamName === team.name).length;
-                const isSelected = selectedTeamId === team.id;
-                return (
-                  <button
-                    key={team.id}
-                    onClick={() => setSelectedTeamId(team.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 ${isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'}`}
-                  >
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: team.color }} />
-                    {team.name} ({count})
-                  </button>
-                );
-              })}
+          {/* Filters, Sorting & Search Toolbar */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+              {/* Filter by Team Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                  className="bg-white border border-gray-200 text-xs font-bold text-gray-700 rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm"
+                >
+                  <option value="ALL">Filter by Team: All Teams ({users.length})</option>
+                  {[...teams]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(team => {
+                      const count = users.filter(u => u.teamId === team.id || u.teamName === team.name).length;
+                      return (
+                        <option key={team.id} value={team.id}>
+                          {team.name} ({count})
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative">
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  className="bg-white border border-gray-200 text-xs font-bold text-gray-700 rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm"
+                >
+                  <option value="name-asc">Sort: Name (A – Z)</option>
+                  <option value="name-desc">Sort: Name (Z – A)</option>
+                </select>
+              </div>
             </div>
 
             {/* Search Input */}
-            <div className="relative w-full sm:w-64">
+            <div className="relative w-full sm:w-60">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search participant..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 text-xs rounded-xl pl-9 pr-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-gray-200 text-xs rounded-xl pl-9 pr-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
               />
             </div>
           </div>
@@ -311,10 +328,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                   <div className="w-12 h-12 rounded-full bg-blue-100 group-hover:bg-blue-600 group-hover:text-white text-blue-600 flex items-center justify-center font-bold text-lg transition-colors shadow-sm">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <h5 className="font-bold text-gray-800 text-sm truncate w-full px-1">{user.name}</h5>
+                  <div className="w-full">
+                    <h5 className="font-bold text-gray-800 text-sm truncate w-full px-1" title={user.name}>{user.name}</h5>
                     {user.teamName && (
-                      <span className="text-[11px] text-gray-400 block truncate font-medium mt-0.5">{user.teamName}</span>
+                      <span className="text-[11px] text-gray-400 block truncate font-medium mt-0.5" title={user.teamName}>{user.teamName}</span>
                     )}
                     <span className="inline-block mt-2 text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
                       {(user.steps || 0).toLocaleString()} steps
