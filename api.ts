@@ -71,8 +71,35 @@ const startTeamsSnapshotListener = () => {
   if (unsubscribeTeamsSnapshot) unsubscribeTeamsSnapshot();
 
   const q = collection(db, TEAMS_COLLECTION);
-  unsubscribeTeamsSnapshot = onSnapshot(q, (snapshot) => {
+  unsubscribeTeamsSnapshot = onSnapshot(q, async (snapshot) => {
     const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Team);
+
+    // Auto-sync: If Cloud Firestore teams collection is empty but local storage has teams, push local teams to Cloud!
+    if (teams.length === 0) {
+      const localTeams = getLocalTeams();
+      if (localTeams.length > 0) {
+        try {
+          const batch = writeBatch(db);
+          localTeams.forEach((t) => {
+            const teamId = t.id || `team-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+            const teamRef = doc(db, TEAMS_COLLECTION, teamId);
+            batch.set(teamRef, {
+              name: t.name,
+              color: t.color || '#4285F4',
+              iconId: t.iconId || 'trophy',
+              location: t.location || 'na',
+              createdAt: serverTimestamp()
+            });
+          });
+          await batch.commit();
+          console.log(`Auto-synced ${localTeams.length} local teams to Cloud Firestore!`);
+          return;
+        } catch (e) {
+          console.warn("Failed to auto-sync local teams to Cloud Firestore", e);
+        }
+      }
+    }
+
     localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
     teamListeners.forEach(cb => cb(teams));
   }, (error) => {
