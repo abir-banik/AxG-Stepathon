@@ -53,6 +53,25 @@ const FAQ_ITEMS: FaqItem[] = [
     )
   },
   {
+    id: 'weekly-deadline',
+    category: 'schedule',
+    question: 'What is the Weekly Step Submission Deadline?',
+    answer: (
+      <div className="space-y-3">
+        <p>
+          Log your steps by <strong className="text-gray-900">Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!
+        </p>
+        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-2 text-xs text-gray-700">
+          <strong className="text-gray-900 block font-bold">💡 What this means for you:</strong>
+          <ul className="space-y-1 pl-1">
+            <li>• <strong>Convert to your local time:</strong> Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).</li>
+            <li>• <strong>Late logs are never lost:</strong> Steps logged after 8:00 PM ET will still count <strong className="text-gray-900">100% toward your team's Overall Competition Total</strong>!</li>
+          </ul>
+        </div>
+      </div>
+    )
+  },
+  {
     id: 'missed-days',
     category: 'logging',
     question: 'What if I forget to log my steps on a specific day?',
@@ -174,6 +193,14 @@ const FaqPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <a 
+              href="https://forms.office.com/r/Zg03YymPPq"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-50 hover:bg-blue-100 text-[#4285F4] px-4 py-2.5 rounded-2xl border border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-xs"
+            >
+              <Sparkles size={14} className="text-[#4285F4]" /> Give Site Feedback
+            </a>
             <a 
               href="mailto:Sydney.yap@accenture.com"
               className="bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#4285F4] px-4 py-2.5 rounded-2xl border border-gray-200 hover:border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-sm"

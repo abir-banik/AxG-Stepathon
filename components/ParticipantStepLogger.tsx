@@ -36,7 +36,14 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
   // Form States
   const [stepInput, setStepInput] = useState('');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const getLocalTodayStr = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const todayStr = getLocalTodayStr();
   const initialDate = todayStr < EVENT_START_DATE ? EVENT_START_DATE : (todayStr > EVENT_END_DATE ? EVENT_END_DATE : todayStr);
   const [selectedDate, setSelectedDate] = useState<string>(initialDate);
   const [selectedWeek, setSelectedWeek] = useState<number>(computeWeekFromDate(initialDate));
@@ -93,8 +100,9 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
   const formatEntryDate = (dateStr: string) => {
     if (!dateStr) return '';
-    if (dateStr.length === 10 && dateStr.includes('-')) {
-      const [year, month, day] = dateStr.split('-').map(Number);
+    const datePart = dateStr.substring(0, 10);
+    if (datePart.length === 10 && datePart.includes('-')) {
+      const [year, month, day] = datePart.split('-').map(Number);
       const d = new Date(year, month - 1, day);
       return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }

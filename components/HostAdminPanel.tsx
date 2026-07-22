@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Team, User } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Team, User, AnnouncementBanner } from '../types';
 import { ACCENTURE_GLOBAL_OFFICES } from '../constants';
 import { 
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
-  Sparkles, Check, X, Lock, Unlock, Layers, MapPin
+  Sparkles, Check, X, Lock, Unlock, Layers, MapPin,
+  Megaphone, Bell, AlertTriangle, Send, CheckCircle2, Flame
 } from 'lucide-react';
 
 const TEAM_COLORS = [
@@ -20,10 +21,13 @@ const TEAM_COLORS = [
 interface HostAdminPanelProps {
   teams: Team[];
   users: User[];
+  announcement?: AnnouncementBanner | null;
   onAddTeam: (name: string, color: string, iconId: string, location?: string, lat?: number, lng?: number) => Promise<Team | null>;
   onDeleteTeam: (teamId: string) => Promise<void>;
   onAddParticipant: (name: string, teamId: string, teamName: string, iconId: string) => Promise<void>;
   onRemoveParticipant: (participantId: string) => Promise<void>;
+  onHealData?: () => Promise<{ success: boolean; healedCount: number }>;
+  onUpdateAnnouncement?: (announcement: AnnouncementBanner) => Promise<void>;
   isAdmin: boolean;
   setIsAdmin: (status: boolean) => void;
 }
@@ -31,15 +35,34 @@ interface HostAdminPanelProps {
 const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   teams,
   users,
+  announcement,
   onAddTeam,
   onDeleteTeam,
   onAddParticipant,
   onRemoveParticipant,
+  onHealData,
+  onUpdateAnnouncement,
   isAdmin,
   setIsAdmin
 }) => {
+  const [isHealing, setIsHealing] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [passError, setPassError] = useState(false);
+
+  // Announcement Form State
+  const [announcementMsg, setAnnouncementMsg] = useState(announcement?.message || '');
+  const [announcementType, setAnnouncementType] = useState<'info' | 'warning' | 'celebration' | 'alert'>(announcement?.type || 'info');
+  const [announcementActive, setAnnouncementActive] = useState<boolean>(announcement?.active ?? false);
+  const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
+  const [announcementSavedSuccess, setAnnouncementSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    if (announcement) {
+      setAnnouncementMsg(announcement.message || '');
+      setAnnouncementType(announcement.type || 'info');
+      setAnnouncementActive(announcement.active ?? false);
+    }
+  }, [announcement]);
 
   // Unified Multiple Teams & Members Creation State
   interface TeamCreationState {
@@ -224,13 +247,188 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => setIsAdmin(false)}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold px-3.5 py-2 rounded-xl transition-colors"
-        >
-          Close Admin Mode
-        </button>
+        <div className="flex items-center gap-2">
+          {onHealData && (
+            <button
+              type="button"
+              disabled={isHealing}
+              onClick={async () => {
+                setIsHealing(true);
+                try {
+                  const res = await onHealData();
+                  alert(`Data sync & healing complete! Healed ${res.healedCount} racer record(s).`);
+                } finally {
+                  setIsHealing(false);
+                }
+              }}
+              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Sparkles size={14} /> {isHealing ? 'Healing Data...' : 'Sync & Heal Data'}
+            </button>
+          )}
+          <button
+            onClick={() => setIsAdmin(false)}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold px-3.5 py-2 rounded-xl transition-colors"
+          >
+            Close Admin Mode
+          </button>
+        </div>
       </div>
+
+      {/* EVENT ANNOUNCEMENT & REMINDER BANNER SETUP */}
+      {onUpdateAnnouncement && (
+        <form 
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setIsSavingAnnouncement(true);
+            try {
+              await onUpdateAnnouncement({
+                message: announcementMsg.trim(),
+                type: announcementType,
+                active: announcementActive
+              });
+              setAnnouncementSavedSuccess(true);
+              setTimeout(() => setAnnouncementSavedSuccess(false), 2500);
+            } finally {
+              setIsSavingAnnouncement(false);
+            }
+          }}
+          className="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-6 space-y-4"
+        >
+          <div className="flex items-center justify-between border-b border-amber-200/80 pb-3">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+              <Megaphone size={18} className="text-amber-600" /> Host Announcement & Reminder Banner
+            </div>
+            <span className="text-xs text-amber-700 font-medium">Shows on Home Page Top</span>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-extrabold text-gray-600 mb-1.5 uppercase tracking-wider">
+                Announcement Message
+              </label>
+              <textarea
+                rows={2}
+                placeholder="e.g. 🕗 Reminder: Log all Week 1 steps by Monday 8:00 PM ET! Post your walking selfies in team chat!"
+                value={announcementMsg}
+                onChange={(e) => setAnnouncementMsg(e.target.value)}
+                className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm font-medium"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-extrabold text-gray-600 mb-2 uppercase tracking-wider">
+                  Banner Category / Style
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncementType('info')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      announcementType === 'info' 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Megaphone size={14} /> 📢 Info
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncementType('warning')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      announcementType === 'warning' 
+                        ? 'bg-amber-500 text-white border-amber-500 shadow-sm' 
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <AlertTriangle size={14} /> ⚠️ Warning
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncementType('celebration')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      announcementType === 'celebration' 
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' 
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Sparkles size={14} /> 🎉 Celebration
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncementType('alert')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      announcementType === 'alert' 
+                        ? 'bg-red-600 text-white border-red-600 shadow-sm' 
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Flame size={14} /> 🚨 Alert
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between">
+                <label className="block text-[11px] font-extrabold text-gray-600 mb-2 uppercase tracking-wider">
+                  Visibility Status
+                </label>
+                <label className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200 cursor-pointer shadow-sm">
+                  <input
+                    type="checkbox"
+                    checked={announcementActive}
+                    onChange={(e) => setAnnouncementActive(e.target.checked)}
+                    className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-gray-800">
+                    {announcementActive ? '🟢 Active (Visible on Home Page)' : '⚪ Inactive (Hidden)'}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={isSavingAnnouncement || !announcementMsg.trim()}
+                className="w-full sm:flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-3 px-5 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {announcementSavedSuccess ? (
+                  <>
+                    <CheckCircle2 size={16} /> Saved & Published!
+                  </>
+                ) : (
+                  <>
+                    <Send size={15} /> {isSavingAnnouncement ? 'Publishing...' : 'Save & Publish Announcement'}
+                  </>
+                )}
+              </button>
+
+              {announcementActive && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setAnnouncementActive(false);
+                    setIsSavingAnnouncement(true);
+                    try {
+                      await onUpdateAnnouncement({
+                        message: announcementMsg,
+                        type: announcementType,
+                        active: false
+                      });
+                    } finally {
+                      setIsSavingAnnouncement(false);
+                    }
+                  }}
+                  className="w-full sm:w-auto bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold py-3 px-4 rounded-xl transition-colors shadow-sm"
+                >
+                  Turn Off Banner
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      )}
 
       {/* UNIFIED TEAM & MEMBERS BATCH CREATOR */}
       <form onSubmit={handleBatchCreateTeam} className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 space-y-6">

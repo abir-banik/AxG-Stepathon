@@ -1,4 +1,4 @@
-import { User, StepEntry, Team } from './types';
+import { User, StepEntry, Team, AnnouncementBanner } from './types';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, addDoc, 
@@ -23,14 +23,18 @@ const db = getFirestore(app);
 
 const RACERS_COLLECTION = 'racers';
 const TEAMS_COLLECTION = 'teams';
+const ANNOUNCEMENT_DOC_ID = '_announcement';
 const LOCAL_STORAGE_KEY = 'tea_o_race_data';
 const LOCAL_TEAMS_KEY = 'tea_o_teams_data';
+const LOCAL_ANNOUNCEMENT_KEY = 'tea_o_announcement_data';
 
 // Internal listener queues
 const listeners: ((users: User[], isOnline: boolean) => void)[] = [];
 const teamListeners: ((teams: Team[]) => void)[] = [];
+const announcementListeners: ((announcement: AnnouncementBanner | null) => void)[] = [];
 let unsubscribeSnapshot: (() => void) | null = null;
 let unsubscribeTeamsSnapshot: (() => void) | null = null;
+let unsubscribeAnnouncementSnapshot: (() => void) | null = null;
 let isOfflineMode = false;
 
 // --- LOCAL STORAGE HELPERS ---
@@ -65,6 +69,47 @@ const getLocalTeams = (): Team[] => {
 const saveLocalTeams = (teams: Team[]) => {
   localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
   teamListeners.forEach(cb => cb(teams));
+};
+
+const DEFAULT_ANNOUNCEMENT: AnnouncementBanner = {
+  message: "📢 Welcome to the 2nd Annual Global AxG Stepathon! Remember to log your daily steps and submit by Monday 8:00 PM ET for weekly awards!",
+  type: "info",
+  active: true,
+  updatedAt: "2026-07-22T00:00:00.000Z"
+};
+
+const getLocalAnnouncement = (): AnnouncementBanner => {
+  try {
+    const data = localStorage.getItem(LOCAL_ANNOUNCEMENT_KEY);
+    return data ? JSON.parse(data) : DEFAULT_ANNOUNCEMENT;
+  } catch { return DEFAULT_ANNOUNCEMENT; }
+};
+
+const saveLocalAnnouncement = (announcement: AnnouncementBanner | null) => {
+  if (announcement) {
+    localStorage.setItem(LOCAL_ANNOUNCEMENT_KEY, JSON.stringify(announcement));
+  } else {
+    localStorage.removeItem(LOCAL_ANNOUNCEMENT_KEY);
+  }
+  announcementListeners.forEach(cb => cb(announcement));
+};
+
+const startAnnouncementSnapshotListener = () => {
+  if (unsubscribeAnnouncementSnapshot) unsubscribeAnnouncementSnapshot();
+
+  const docRef = doc(db, RACERS_COLLECTION, ANNOUNCEMENT_DOC_ID);
+  unsubscribeAnnouncementSnapshot = onSnapshot(docRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data() as AnnouncementBanner;
+      localStorage.setItem(LOCAL_ANNOUNCEMENT_KEY, JSON.stringify(data));
+      announcementListeners.forEach(cb => cb(data));
+    } else {
+      announcementListeners.forEach(cb => cb(DEFAULT_ANNOUNCEMENT));
+    }
+  }, (error) => {
+    console.warn("Announcement Firebase Error (Using Local):", error.message);
+    announcementListeners.forEach(cb => cb(getLocalAnnouncement()));
+  });
 };
 
 const GOOGLE_COLORS = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#A142F4', '#FF6D00', '#00BFA5', '#F4511E'];
@@ -158,8 +203,10 @@ const startSnapshotListener = () => {
     (snapshot) => {
       // Success! Connection is live.
       isOfflineMode = false;
-      const users = snapshot.docs.map(doc => {
-        const data = doc.data();
+      const users = snapshot.docs
+        .filter(doc => !doc.id.startsWith('_'))
+        .map(doc => {
+          const data = doc.data();
         return {
             id: doc.id,
             ...data,
@@ -224,6 +271,39 @@ export const api = {
     };
   },
 
+  // Subscribe to real-time event announcement
+  subscribeToAnnouncement(callback: (announcement: AnnouncementBanner | null) => void): () => void {
+    announcementListeners.push(callback);
+    if (announcementListeners.length === 1) {
+      startAnnouncementSnapshotListener();
+    } else {
+      callback(getLocalAnnouncement());
+    }
+    return () => {
+      const idx = announcementListeners.indexOf(callback);
+      if (idx !== -1) announcementListeners.splice(idx, 1);
+    };
+  },
+
+  // Update Announcement Banner (Admin only)
+  async updateAnnouncement(announcement: AnnouncementBanner): Promise<boolean> {
+    const dataToSave: AnnouncementBanner = {
+      ...announcement,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      const docRef = doc(db, RACERS_COLLECTION, ANNOUNCEMENT_DOC_ID);
+      await setDoc(docRef, dataToSave, { merge: true });
+      saveLocalAnnouncement(dataToSave);
+      return true;
+    } catch (e) {
+      console.warn("Firebase Announcement Write Failed, fallback to local", e);
+      saveLocalAnnouncement(dataToSave);
+      return true;
+    }
+  },
+
   // Create a new Team (Admin only)
   async addTeam(name: string, color: string, iconId: string, location?: string, lat?: number, lng?: number): Promise<Team | null> {
     const newTeamBase = {
@@ -268,6 +348,7 @@ export const api = {
     isOfflineMode = false;
     startSnapshotListener();
     startTeamsSnapshotListener();
+    startAnnouncementSnapshotListener();
   },
 
   // Create a new user
@@ -321,22 +402,41 @@ export const api = {
 
     if (validSteps <= 0 || !userId) return null;
 
-    const entryDate = customDate 
-      ? (customDate.includes('T') ? customDate : new Date(`${customDate}T12:00:00`).toISOString()) 
-      : new Date().toISOString();
+    const now = new Date();
+    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const entryDate = customDate ? customDate.substring(0, 10) : localToday;
+    const submittedAt = now.toISOString();
+
+    const newEntry: StepEntry = {
+      amount: validSteps,
+      date: entryDate,
+      week: validWeek,
+      submittedAt
+    };
 
     try {
       const userRef = doc(db, RACERS_COLLECTION, userId);
+      const snap = await getDoc(userRef);
       
-      // We update the specific week key (e.g., "weeklySteps.1") and the total steps
+      let newHistory: StepEntry[] = [newEntry];
+      if (snap.exists()) {
+        const userData = snap.data() as User;
+        const currentHistory = Array.isArray(userData.stepHistory) ? userData.stepHistory : [];
+        newHistory = [...currentHistory, newEntry];
+      }
+
+      // Self-healing totals: always re-sum stepHistory
+      const newTotalSteps = newHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const newWeeklySteps: Record<string, number> = {};
+      newHistory.forEach(e => {
+        const wk = String(e.week || 1);
+        newWeeklySteps[wk] = (newWeeklySteps[wk] || 0) + (Number(e.amount) || 0);
+      });
+
       await updateDoc(userRef, {
-        steps: increment(validSteps),
-        [`weeklySteps.${validWeek}`]: increment(validSteps),
-        stepHistory: arrayUnion({
-          amount: validSteps,
-          date: entryDate,
-          week: validWeek
-        }),
+        steps: newTotalSteps,
+        weeklySteps: newWeeklySteps,
+        stepHistory: newHistory,
         lastUpdated: serverTimestamp()
       });
       
@@ -355,19 +455,16 @@ export const api = {
       const localUsers = getLocalUsers();
       const user = localUsers.find(u => u.id === userId);
       if (user) {
-        user.steps += validSteps;
-        
-        // Init weeklySteps if missing in local
-        if (!user.weeklySteps) user.weeklySteps = {};
-        const currentWeekSteps = user.weeklySteps[validWeek] || 0;
-        user.weeklySteps[validWeek] = currentWeekSteps + validSteps;
-
         if (!user.stepHistory) user.stepHistory = [];
-        user.stepHistory.push({
-          amount: validSteps,
-          date: entryDate,
-          week: validWeek
+        user.stepHistory.push(newEntry);
+        
+        user.steps = user.stepHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        user.weeklySteps = {};
+        user.stepHistory.forEach(e => {
+          const wk = String(e.week || 1);
+          user.weeklySteps![wk] = (user.weeklySteps![wk] || 0) + (Number(e.amount) || 0);
         });
+
         saveLocalUsers(localUsers);
         return user;
       }
@@ -389,24 +486,20 @@ export const api = {
       
       if (entryIndex < 0 || entryIndex >= history.length) return false;
       
-      const entryToRemove = history[entryIndex];
       const newHistory = [...history];
       newHistory.splice(entryIndex, 1);
       
-      // Calculate new totals using subtraction
-      const currentTotal = userData.steps || 0;
-      const newTotal = Math.max(0, currentTotal - entryToRemove.amount);
-
-      const currentWeekly = userData.weeklySteps || {};
-      const weekKey = entryToRemove.week || 1;
-      const currentWeekVal = currentWeekly[weekKey] || 0;
-      const newWeekVal = Math.max(0, currentWeekVal - entryToRemove.amount);
-      
-      const newWeeklySteps = { ...currentWeekly, [weekKey]: newWeekVal };
+      // Self-healing totals: re-sum remaining stepHistory
+      const newTotalSteps = newHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const newWeeklySteps: Record<string, number> = {};
+      newHistory.forEach(e => {
+        const wk = String(e.week || 1);
+        newWeeklySteps[wk] = (newWeeklySteps[wk] || 0) + (Number(e.amount) || 0);
+      });
 
       // Write back the full update
       await updateDoc(userRef, {
-        steps: newTotal,
+        steps: newTotalSteps,
         weeklySteps: newWeeklySteps,
         stepHistory: newHistory,
         lastUpdated: serverTimestamp()
@@ -422,13 +515,13 @@ export const api = {
       const user = localUsers.find(u => u.id === userId);
       if (user && user.stepHistory) {
          if (entryIndex >= 0 && entryIndex < user.stepHistory.length) {
-             const entry = user.stepHistory[entryIndex];
-             // Update local state
-             user.steps = Math.max(0, user.steps - entry.amount);
-             if (user.weeklySteps && entry.week) {
-                 user.weeklySteps[entry.week] = Math.max(0, (user.weeklySteps[entry.week] || 0) - entry.amount);
-             }
              user.stepHistory.splice(entryIndex, 1);
+             user.steps = user.stepHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+             user.weeklySteps = {};
+             user.stepHistory.forEach(e => {
+               const wk = String(e.week || 1);
+               user.weeklySteps![wk] = (user.weeklySteps![wk] || 0) + (Number(e.amount) || 0);
+             });
              saveLocalUsers(localUsers);
              return true;
          }
@@ -487,6 +580,112 @@ export const api = {
 
     } catch (e) {
       console.error("Firebase Reset failed (Offline?)", e);
+    }
+  },
+
+  // Database Healing Migration: Normalize dates to YYYY-MM-DD and recompute all totals from stepHistory
+  async healAllRacerData(): Promise<{ success: boolean; healedCount: number }> {
+    const now = new Date();
+    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let healedCount = 0;
+
+    try {
+      const querySnapshot = await getDocs(collection(db, RACERS_COLLECTION));
+      const batch = writeBatch(db);
+
+      querySnapshot.docs.forEach((docSnapshot) => {
+        const userData = docSnapshot.data() as User;
+        const history = Array.isArray(userData.stepHistory) ? userData.stepHistory : [];
+
+        let needsUpdate = false;
+        const normalizedHistory: StepEntry[] = history.map((entry) => {
+          const rawDate = entry.date || localToday;
+          const cleanDate = rawDate.length > 10 ? rawDate.substring(0, 10) : rawDate;
+          const cleanAmount = Math.max(0, Math.floor(Number(entry.amount) || 0));
+          if (cleanDate !== rawDate || cleanAmount !== entry.amount) {
+            needsUpdate = true;
+          }
+          return {
+            ...entry,
+            date: cleanDate,
+            amount: cleanAmount
+          };
+        });
+
+        const recomputedTotal = normalizedHistory.reduce((sum, e) => sum + e.amount, 0);
+        const recomputedWeekly: Record<string, number> = {};
+        normalizedHistory.forEach((e) => {
+          const wk = String(e.week || 1);
+          recomputedWeekly[wk] = (recomputedWeekly[wk] || 0) + e.amount;
+        });
+
+        if (userData.steps !== recomputedTotal || JSON.stringify(userData.weeklySteps || {}) !== JSON.stringify(recomputedWeekly)) {
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          const userRef = doc(db, RACERS_COLLECTION, docSnapshot.id);
+          batch.update(userRef, {
+            steps: recomputedTotal,
+            weeklySteps: recomputedWeekly,
+            stepHistory: normalizedHistory,
+            lastUpdated: serverTimestamp()
+          });
+          healedCount++;
+        }
+      });
+
+      if (healedCount > 0) {
+        await batch.commit();
+      }
+
+      const localUsers = getLocalUsers();
+      let localHealed = false;
+      localUsers.forEach(u => {
+        const history = Array.isArray(u.stepHistory) ? u.stepHistory : [];
+        const normHist = history.map(e => ({
+          ...e,
+          date: (e.date || localToday).substring(0, 10),
+          amount: Math.max(0, Math.floor(Number(e.amount) || 0))
+        }));
+        const total = normHist.reduce((sum, e) => sum + e.amount, 0);
+        const weekly: Record<string, number> = {};
+        normHist.forEach(e => {
+          const wk = String(e.week || 1);
+          weekly[wk] = (weekly[wk] || 0) + e.amount;
+        });
+        u.stepHistory = normHist;
+        u.steps = total;
+        u.weeklySteps = weekly;
+        localHealed = true;
+      });
+      if (localHealed) {
+        saveLocalUsers(localUsers);
+      }
+
+      return { success: true, healedCount };
+    } catch (e) {
+      console.warn("Firestore data heal failed (Offline fallback)", e);
+      const localUsers = getLocalUsers();
+      localUsers.forEach(u => {
+        const history = Array.isArray(u.stepHistory) ? u.stepHistory : [];
+        const normHist = history.map(e => ({
+          ...e,
+          date: (e.date || localToday).substring(0, 10),
+          amount: Math.max(0, Math.floor(Number(e.amount) || 0))
+        }));
+        const total = normHist.reduce((sum, e) => sum + e.amount, 0);
+        const weekly: Record<string, number> = {};
+        normHist.forEach(e => {
+          const wk = String(e.week || 1);
+          weekly[wk] = (weekly[wk] || 0) + e.amount;
+        });
+        u.stepHistory = normHist;
+        u.steps = total;
+        u.weeklySteps = weekly;
+      });
+      saveLocalUsers(localUsers);
+      return { success: true, healedCount: localUsers.length };
     }
   }
 };

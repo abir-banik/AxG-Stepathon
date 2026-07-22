@@ -84,4 +84,26 @@ describe('WeeklyLeaderboardPage component', () => {
     // Week 1 Charlie: 12000 steps / 2000 = 6 miles * 1.60934 = 9.7 km
     expect(screen.getAllByText('9.7 km').length).toBeGreaterThanOrEqual(1);
   });
+
+  it('filters out entries submitted after Monday 8:00 PM ET deadline for that week', () => {
+    const userWithLateSubmission: User = {
+      id: 'user-late',
+      name: 'Late Submitter',
+      teamId: 'team-1',
+      teamName: 'Boba Walkers',
+      steps: 15000,
+      weeklySteps: { 1: 15000 },
+      stepHistory: [
+        { amount: 5000, date: '2026-07-15', week: 1, submittedAt: '2026-07-18T10:00:00.000Z' }, // Before deadline (July 21 00:00 UTC) -> valid
+        { amount: 10000, date: '2026-07-19', week: 1, submittedAt: '2026-07-22T14:00:00.000Z' } // After deadline -> excluded from W1 leaderboard
+      ],
+      iconId: 'smile'
+    };
+
+    render(<WeeklyLeaderboardPage users={[userWithLateSubmission]} teams={mockTeams} distanceUnit="mi" />);
+    
+    // Should show 5,000 steps for Week 1 (not 15,000)
+    expect(screen.getByText('5,000')).toBeInTheDocument();
+    expect(screen.queryByText('15,000')).not.toBeInTheDocument();
+  });
 });

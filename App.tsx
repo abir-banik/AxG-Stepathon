@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Waypoint, Team } from './types';
+import { User, Waypoint, Team, AnnouncementBanner } from './types';
 import { ROUTE_WAYPOINTS, TOTAL_GOAL_STEPS } from './constants';
 import RaceMap from './components/RaceMap';
 import GlobalOfficeMap from './components/GlobalOfficeMap';
@@ -15,15 +15,22 @@ import TeamLeaderboardPage from './pages/TeamLeaderboardPage';
 import IndividualLeaderboardPage from './pages/IndividualLeaderboardPage';
 import WeeklyLeaderboardPage from './pages/WeeklyLeaderboardPage';
 import FaqPage from './components/FaqPage';
+import AnnouncementBannerView from './components/AnnouncementBannerView';
 import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle } from 'lucide-react';
 import { api } from './api';
 
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [announcement, setAnnouncement] = useState<AnnouncementBanner | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  const [milestonesReached, setMilestonesReached] = useState<string[]>([]);
+  const [milestonesReached, setMilestonesReached] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('tea_o_milestones_reached');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [activeNotification, setActiveNotification] = useState<Waypoint | null>(null);
   const [mapViewMode, setMapViewMode] = useState<'global' | 'local'>('global');
   
@@ -74,9 +81,14 @@ const App: React.FC = () => {
        setTeams(teamData);
     });
 
+    const unsubAnnouncement = api.subscribeToAnnouncement((announcementData) => {
+       setAnnouncement(announcementData);
+    });
+
     return () => {
       unsubUsers();
       unsubTeams();
+      unsubAnnouncement();
     };
   }, []);
 
@@ -111,8 +123,11 @@ const App: React.FC = () => {
         const requiredProgress = index * segmentSize; 
         
         if (progressPercentage >= requiredProgress && index > 0 && !milestonesReached.includes(wp.name)) {
-             setMilestonesReached(prev => [...prev, wp.name]);
-             setActiveNotification(wp);
+             setMilestonesReached(prev => {
+               const updated = [...prev, wp.name];
+               localStorage.setItem('tea_o_milestones_reached', JSON.stringify(updated));
+               return updated;
+             });
         }
     });
   }, [progressPercentage, milestonesReached]);
@@ -124,18 +139,19 @@ const App: React.FC = () => {
   };
 
   const handleAddSteps = async (userId: string, steps: number, week: number, customDate?: string) => {
-    const entryDate = customDate 
-      ? (customDate.includes('T') ? customDate : new Date(`${customDate}T12:00:00`).toISOString()) 
-      : new Date().toISOString();
+    const now = new Date();
+    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const entryDate = customDate ? customDate.substring(0, 10) : localToday;
+    const submittedAt = now.toISOString();
 
     // Optimistic Update
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        const newTotal = u.steps + steps;
+        const newTotal = (u.steps || 0) + steps;
         const updatedWeekly = { ...u.weeklySteps };
         updatedWeekly[week] = (updatedWeekly[week] || 0) + steps;
         
-        const newHistory = [...(u.stepHistory || []), { amount: steps, date: entryDate, week }];
+        const newHistory = [...(u.stepHistory || []), { amount: steps, date: entryDate, week, submittedAt }];
         return { ...u, steps: newTotal, weeklySteps: updatedWeekly, stepHistory: newHistory };
       }
       return u;
@@ -184,6 +200,10 @@ const App: React.FC = () => {
     await api.deleteUser(participantId);
   };
 
+  const handleUpdateAnnouncement = async (announcementData: AnnouncementBanner) => {
+    await api.updateAnnouncement(announcementData);
+  };
+
   const handleResetRace = async () => {
     const confirmation = window.prompt("DANGER: This will permanently delete ALL teams, racers, and step data.\n\nEnter Admin Password to confirm:");
     
@@ -191,6 +211,7 @@ const App: React.FC = () => {
         setIsResetting(true);
         try {
             await api.resetRace();
+            localStorage.removeItem('tea_o_milestones_reached');
             setUsers([]);
             setTeams([]);
             setTimeout(() => {
@@ -296,6 +317,9 @@ const App: React.FC = () => {
           </div>
         </header>
 
+        {/* EVENT ANNOUNCEMENT BANNER */}
+        <AnnouncementBannerView announcement={announcement} />
+
         {/* MULTI-PAGE NAVIGATION TABS (GitHub Pages & SPA compatible) */}
         <nav className="flex flex-col sm:flex-row bg-white p-2 rounded-2xl border border-gray-100 shadow-sm gap-2">
           <button
@@ -354,28 +378,6 @@ const App: React.FC = () => {
           </button>
         </nav>
 
-        {/* Milestone Modal */}
-        {activeNotification && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-xl relative animate-bounce-in border border-gray-100">
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#FBBC05] text-white p-3 rounded-full shadow-md">
-                <MapPin size={32} strokeWidth={2.5} />
-              </div>
-              <h2 className="text-2xl font-normal text-center mt-6 text-gray-800">Checkpoint Reached</h2>
-              <h3 className="text-xl text-center text-[#4285F4] font-medium mt-1">{activeNotification.name}</h3>
-              <p className="text-gray-600 text-center mt-4 text-lg leading-relaxed">
-                {activeNotification.fact}
-              </p>
-              <button 
-                onClick={closeNotification}
-                className="w-full mt-8 bg-[#4285F4] hover:bg-blue-600 text-white font-medium py-3 rounded-full shadow-md transition-transform active:scale-95"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* TAB 1: RACE DASHBOARD */}
         {activeTab === 'dashboard' && (
           <div className="space-y-8 animate-fade-in">
@@ -383,10 +385,13 @@ const App: React.FC = () => {
             <HostAdminPanel
               teams={teams}
               users={users}
+              announcement={announcement}
               onAddTeam={handleAddTeam}
               onDeleteTeam={handleDeleteTeam}
               onAddParticipant={handleAddParticipant}
               onRemoveParticipant={handleRemoveParticipant}
+              onHealData={api.healAllRacerData}
+              onUpdateAnnouncement={handleUpdateAnnouncement}
               isAdmin={isAdmin}
               setIsAdmin={setIsAdmin}
             />
@@ -448,19 +453,48 @@ const App: React.FC = () => {
         {/* Footer Actions */}
         <ReportGenerator users={users} totalSteps={totalSteps} />
 
-        <footer className="text-center text-gray-400 text-sm pt-12 pb-8">
-           <p className="mb-4 font-medium text-gray-500">© 2026 Inclusion & Diversity + Care • AxG Stepathon</p>
+        <footer className="text-center text-gray-400 text-sm pt-12 pb-8 space-y-3">
+           <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-500">
+             <span>Spotted a bug or have an idea?</span>
+             <a
+               href="https://forms.office.com/r/Zg03YymPPq"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="text-[#4285F4] hover:text-blue-700 underline font-bold transition-colors inline-flex items-center gap-1"
+             >
+               ✨ Help us improve the site
+             </a>
+           </div>
+
+           <p className="font-medium text-gray-500 text-xs">© 2026 Inclusion & Diversity + Care • AxG Stepathon</p>
            
            {/* Danger Zone */}
            <button 
              onClick={handleResetRace}
              disabled={isResetting}
-             className="text-red-200 hover:text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors disabled:opacity-50 disabled:cursor-wait"
+             className="text-red-200 hover:text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors disabled:opacity-50 disabled:cursor-wait"
            >
              {isResetting ? <Loader2 size={12} className="animate-spin" /> : <AlertTriangle size={12} />}
              {isResetting ? 'Wiping Data...' : 'Admin Reset'}
            </button>
         </footer>
+
+        {/* FLOATING FEEDBACK PILL (Option 1 - Bottom Right) */}
+        <aside aria-label="Feedback link" className="fixed bottom-6 right-6 z-40">
+          <a
+            href="https://forms.office.com/r/Zg03YymPPq"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-2.5 bg-white/95 backdrop-blur-md text-gray-800 hover:text-[#4285F4] border border-gray-200/90 hover:border-blue-300 px-4 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 text-xs font-bold"
+            title="Help us improve the Stepathon site! (Feedback & Bug Reports)"
+          >
+            <span className="w-6 h-6 rounded-full bg-blue-50 text-[#4285F4] group-hover:bg-[#4285F4] group-hover:text-white flex items-center justify-center transition-colors text-xs shadow-xs">
+              ✨
+            </span>
+            <span className="hidden sm:inline font-bold">Help improve the site</span>
+            <span className="sm:hidden font-bold">Feedback</span>
+          </a>
+        </aside>
       </div>
     </div>
   );

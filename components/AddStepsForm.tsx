@@ -201,10 +201,21 @@ const AddStepsForm: React.FC<AddStepsFormProps> = ({ users, onAddSteps, onAddUse
                         {/* We map in reverse to show newest first */}
                         {[...selectedUser.stepHistory].reverse().map((entry, reverseIndex) => {
                           const realIndex = selectedUser.stepHistory!.length - 1 - reverseIndex;
+                          const formatEntryDate = (dateStr: string) => {
+                            if (!dateStr) return '';
+                            const datePart = dateStr.substring(0, 10);
+                            if (datePart.length === 10 && datePart.includes('-')) {
+                              const [year, month, day] = datePart.split('-').map(Number);
+                              const d = new Date(year, month - 1, day);
+                              return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                            }
+                            const d = new Date(dateStr);
+                            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                          };
                           return (
                             <tr key={realIndex} className="hover:bg-blue-50/30 transition-colors">
                                <td className="px-4 py-3 text-gray-500">
-                                 {new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                                 {formatEntryDate(entry.date)}
                                </td>
                                <td className="px-4 py-3 text-gray-600 font-medium">Week {entry.week || '?'}</td>
                                <td className="px-4 py-3 font-bold text-gray-800">+{(entry?.amount || 0).toLocaleString()}</td>

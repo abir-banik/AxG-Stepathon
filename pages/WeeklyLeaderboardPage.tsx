@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Team } from '../types';
 import { EVENT_WEEKS, WeekDefinition } from '../constants';
-import { Calendar, Trophy, Award, Crown, Users } from 'lucide-react';
+import { Calendar, Trophy, Award, Crown, Users, Clock } from 'lucide-react';
 
 interface WeeklyLeaderboardPageProps {
   users: User[];
@@ -9,15 +9,40 @@ interface WeeklyLeaderboardPageProps {
   distanceUnit?: 'mi' | 'km';
 }
 
+const WEEKLY_DEADLINES: Record<number, string> = {
+  1: '2026-07-21T00:00:00.000Z', // Monday July 20 @ 8:00 PM ET
+  2: '2026-07-28T00:00:00.000Z', // Monday July 27 @ 8:00 PM ET
+  3: '2026-08-04T00:00:00.000Z', // Monday August 3 @ 8:00 PM ET
+  4: '2026-08-05T21:00:00.000Z', // Wednesday August 5 @ 5:00 PM ET
+};
+
+const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
+  const history = user.stepHistory;
+  if (!history || history.length === 0) {
+    return user.weeklySteps ? (user.weeklySteps[weekNum] || 0) : 0;
+  }
+
+  const deadline = WEEKLY_DEADLINES[weekNum];
+
+  const validEntries = history.filter(e => {
+    const entryWeek = e.week || 1;
+    if (entryWeek !== weekNum) return false;
+    if (!deadline || !e.submittedAt) return true; // Legacy entry or missing submission timestamp
+    return e.submittedAt <= deadline;
+  });
+
+  return validEntries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+};
+
 const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, teams, distanceUnit = 'mi' }) => {
   const [selectedWeekNum, setSelectedWeekNum] = useState<number>(1);
   const isKm = distanceUnit === 'km';
 
   const currentWeekInfo = EVENT_WEEKS.find(w => w.weekNumber === selectedWeekNum) || EVENT_WEEKS[0];
 
-  // 1. Calculate Individual Stats for Selected Week
+  // 1. Calculate Individual Stats for Selected Week (respecting Monday 8:00 PM ET cutoff)
   const individualWeeklyStats = users.map(user => {
-    const weeklySteps = user.weeklySteps ? (user.weeklySteps[selectedWeekNum] || 0) : 0;
+    const weeklySteps = calculateValidWeeklySteps(user, selectedWeekNum);
     const weeklyMiles = weeklySteps / 2000;
     const weeklyDist = isKm ? weeklyMiles * 1.60934 : weeklyMiles;
     return {
@@ -31,11 +56,11 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
   // Top 3 Individuals for Selected Week
   const top3Individuals = individualWeeklyStats.slice(0, 3).filter(u => u.weeklySteps > 0);
 
-  // 2. Calculate Team Stats for Selected Week
+  // 2. Calculate Team Stats for Selected Week (respecting Monday 8:00 PM ET cutoff)
   const teamWeeklyStats = teams.map(team => {
     const members = users.filter(u => u.teamId === team.id || u.teamName === team.name);
     const totalWeeklySteps = members.reduce((acc, m) => {
-      const mSteps = m.weeklySteps ? (m.weeklySteps[selectedWeekNum] || 0) : 0;
+      const mSteps = calculateValidWeeklySteps(m, selectedWeekNum);
       return acc + mSteps;
     }, 0);
     const totalWeeklyMiles = totalWeeklySteps / 2000;
@@ -112,6 +137,31 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* WEEKLY DEADLINE NOTICE BANNER */}
+      <div className="bg-purple-50/90 border border-purple-200/80 p-4 md:p-5 rounded-2xl text-xs text-purple-950 flex flex-col sm:flex-row items-start gap-3.5 shadow-sm">
+        <div className="bg-purple-600 text-white p-2.5 rounded-xl shrink-0 shadow-sm mt-0.5">
+          <Clock size={20} />
+        </div>
+        <div className="space-y-2 flex-1">
+          <div>
+            <span className="font-extrabold text-purple-950 text-sm block">🕗 Weekly Submission Deadline: Every Monday @ 8:00 PM ET</span>
+            <p className="text-purple-900 font-medium text-xs mt-0.5">
+              Log your steps by <strong>Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!
+            </p>
+          </div>
+
+          <div className="bg-white/80 border border-purple-100 p-3 rounded-xl space-y-1.5 text-[11px] text-purple-900 shadow-2xs">
+            <span className="font-bold text-purple-950 flex items-center gap-1.5">
+              💡 <strong>What this means for you:</strong>
+            </span>
+            <ul className="space-y-1 pl-1 text-purple-900 font-medium">
+              <li>• <strong>Convert to your local time:</strong> Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).</li>
+              <li>• <strong>Late logs are never lost:</strong> Steps logged after 8:00 PM ET will still count <strong>100% toward your team's Overall Competition Total</strong>!</li>
+            </ul>
+          </div>
         </div>
       </div>
 
