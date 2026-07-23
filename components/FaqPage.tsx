@@ -30,7 +30,7 @@ const FAQ_ITEMS: FaqItem[] = [
         <ul className="list-disc list-inside space-y-1 text-gray-600 pl-2">
           <li><strong className="text-gray-900">Sign-Up Window:</strong> July 6th – July 10th</li>
           <li><strong className="text-gray-900">Stepping Challenge:</strong> July 13th – August 5th</li>
-          <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Wednesday, August 5th at 5:00 PM EST</li>
+          <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Wednesday, August 5th at 8:00 PM EST</li>
           <li><strong className="text-gray-900">Winners Reveal:</strong> People Day Extravaganza on Thursday, August 6th! 🏆</li>
         </ul>
       </div>
@@ -77,7 +77,7 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'What if I forget to log my steps on a specific day?',
     answer: (
       <p>
-        No problem at all! You don't have to log every single day in real-time. If you miss logging a day, simply use the date picker in your step logger to pick the prior date and add your steps. Just be sure all your steps are entered before the competition deadline on <strong className="text-gray-900">Wednesday, August 5th at 5:00 PM EST</strong>.
+        No problem at all! You don't have to log every single day in real-time. If you miss logging a day, simply use the date picker in your step logger to pick the prior date and add your steps. Just be sure all your steps are entered before the competition deadline on <strong className="text-gray-900">Wednesday, August 5th at 8:00 PM EST</strong>.
       </p>
     )
   },
@@ -92,21 +92,6 @@ const FAQ_ITEMS: FaqItem[] = [
         </p>
         <p className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
           📌 <em>Note: Event hosts reserve the right to request step tracker screenshots for validation if needed.</em>
-        </p>
-      </div>
-    )
-  },
-  {
-    id: 'eligibility-teams',
-    category: 'rules',
-    question: 'Who is eligible to participate and how do teams work?',
-    answer: (
-      <div className="space-y-2">
-        <p>
-          <strong>Eligibility:</strong> Open to all North America (NA) full-time employees on the Google account.
-        </p>
-        <p>
-          <strong>Teams:</strong> Participants signed up in teams of up to 5 members or as individuals (who were assigned to teams). Every step you log automatically contributes to both your individual rank and your overall team leaderboard score!
         </p>
       </div>
     )
@@ -238,7 +223,7 @@ const FaqPage: React.FC = () => {
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
               <Clock size={14} className="text-[#EA4335]" /> Final Cutoff
             </div>
-            <div className="text-base font-extrabold text-gray-900">Aug 5 @ 5:00 PM EST</div>
+            <div className="text-base font-extrabold text-gray-900">Aug 5 @ 8:00 PM EST</div>
             <p className="text-[11px] text-gray-400 font-medium">Step Logging Deadline</p>
           </div>
 

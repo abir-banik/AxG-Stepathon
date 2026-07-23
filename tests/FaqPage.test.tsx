@@ -10,7 +10,7 @@ describe('FaqPage Component', () => {
     expect(screen.getByText('Frequently Asked Questions')).toBeInTheDocument();
     expect(screen.getByText('July 6 – July 10')).toBeInTheDocument();
     expect(screen.getByText('July 13 – August 5')).toBeInTheDocument();
-    expect(screen.getByText('Aug 5 @ 5:00 PM EST')).toBeInTheDocument();
+    expect(screen.getByText('Aug 5 @ 8:00 PM EST')).toBeInTheDocument();
   });
 
   it('renders interactive host email contact links', () => {

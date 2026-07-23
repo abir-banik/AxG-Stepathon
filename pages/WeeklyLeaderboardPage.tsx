@@ -13,7 +13,7 @@ const WEEKLY_DEADLINES: Record<number, string> = {
   1: '2026-07-21T00:00:00.000Z', // Monday July 20 @ 8:00 PM ET
   2: '2026-07-28T00:00:00.000Z', // Monday July 27 @ 8:00 PM ET
   3: '2026-08-04T00:00:00.000Z', // Monday August 3 @ 8:00 PM ET
-  4: '2026-08-05T21:00:00.000Z', // Wednesday August 5 @ 5:00 PM ET
+  4: '2026-08-06T00:00:00.000Z', // Wednesday August 5 @ 8:00 PM ET
 };
 
 const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
