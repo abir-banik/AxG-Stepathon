@@ -93,11 +93,6 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
     }
   };
 
-  const addPresetSteps = (amount: number) => {
-    const current = parseInt(stepInput, 10) || 0;
-    setStepInput((current + amount).toString());
-  };
-
   const formatEntryDate = (dateStr: string) => {
     if (!dateStr) return '';
     const datePart = dateStr.substring(0, 10);
@@ -206,32 +201,6 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                 className="bg-[#4285F4] hover:bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
               >
                 <Check size={20} /> Log Steps
-              </button>
-            </div>
-
-            {/* Quick Presets */}
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-xs text-gray-400 font-bold uppercase mr-1">Quick Add:</span>
-              <button
-                type="button"
-                onClick={() => addPresetSteps(2000)}
-                className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition-colors shadow-sm"
-              >
-                +2,000 (1 mi)
-              </button>
-              <button
-                type="button"
-                onClick={() => addPresetSteps(5000)}
-                className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition-colors shadow-sm"
-              >
-                +5,000 (2.5 mi)
-              </button>
-              <button
-                type="button"
-                onClick={() => addPresetSteps(10000)}
-                className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition-colors shadow-sm"
-              >
-                +10,000 (5 mi)
               </button>
             </div>
           </form>

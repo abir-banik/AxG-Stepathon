@@ -87,29 +87,6 @@ describe('ParticipantStepLogger Component', () => {
     expect(screen.getByRole('button', { name: /log steps/i })).toBeInTheDocument();
   });
 
-  it('supports quick add preset step values', () => {
-    render(
-      <ParticipantStepLogger
-        users={mockUsers}
-        teams={mockTeams}
-        onAddSteps={vi.fn()}
-        onDeleteStep={vi.fn()}
-      />
-    );
-
-    // Click on Alice Smith
-    fireEvent.click(screen.getByText('Alice Smith'));
-
-    const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...') as HTMLInputElement;
-    expect(stepInput.value).toBe('');
-
-    // Click +2,000 preset button
-    const presetBtn = screen.getByText('+2,000 (1 mi)');
-    fireEvent.click(presetBtn);
-
-    expect(stepInput.value).toBe('2000');
-  });
-
   it('submits step entry and invokes onAddSteps', async () => {
     const onAddSteps = vi.fn();
     render(
