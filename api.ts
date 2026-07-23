@@ -72,7 +72,7 @@ const saveLocalTeams = (teams: Team[]) => {
 };
 
 const DEFAULT_ANNOUNCEMENT: AnnouncementBanner = {
-  message: "📢 Welcome to the 2nd Annual Global AxG Stepathon! Remember to log your daily steps and submit by Monday 8:00 PM ET for weekly awards!",
+  message: "📢 Welcome to the 2nd Annual Global Stepathon! Remember to log your daily steps and submit by Monday 8:00 PM ET for weekly awards!",
   type: "info",
   active: true,
   updatedAt: "2026-07-22T00:00:00.000Z"

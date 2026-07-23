@@ -26,12 +26,12 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'When does the Step-a-Thon take place?',
     answer: (
       <div className="space-y-2">
-        <p>The 2nd Annual Global AxG Step-a-Thon key milestones are:</p>
+        <p>The 2nd Annual Global Step-a-Thon key milestones are:</p>
         <ul className="list-disc list-inside space-y-1 text-gray-600 pl-2">
           <li><strong className="text-gray-900">Sign-Up Window:</strong> July 6th – July 10th</li>
           <li><strong className="text-gray-900">Stepping Challenge:</strong> July 13th – August 5th</li>
           <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Wednesday, August 5th at 5:00 PM EST</li>
-          <li><strong className="text-gray-900">Winners Reveal:</strong> AxG People Day Extravaganza on Thursday, August 6th! 🏆</li>
+          <li><strong className="text-gray-900">Winners Reveal:</strong> People Day Extravaganza on Thursday, August 6th! 🏆</li>
         </ul>
       </div>
     )
@@ -142,7 +142,7 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-2">
         <p>
-          Join our global Teams chat channel: <strong className="text-[#4285F4]">🌍👟 AxG Global Step-a-Thon</strong>! Use it to share photos, post daily milestones, and cheer each other on across the globe. We also encourage individual teams to set up group chats for extra motivation!
+          Join our global Teams chat channel: <strong className="text-[#4285F4]">🌍👟 Global Step-a-Thon</strong>! Use it to share photos, post daily milestones, and cheer each other on across the globe. We also encourage individual teams to set up group chats for extra motivation!
         </p>
       </div>
     )
@@ -188,7 +188,7 @@ const FaqPage: React.FC = () => {
               Frequently Asked Questions
             </h2>
             <p className="text-gray-500 text-sm max-w-2xl">
-              Everything you need to know about event dates, logging steps, competition rules, and staying connected throughout the 2nd Annual Global AxG Step-a-Thon.
+              Everything you need to know about event dates, logging steps, competition rules, and staying connected throughout the 2nd Annual Global Step-a-Thon.
             </p>
           </div>
 
@@ -247,7 +247,7 @@ const FaqPage: React.FC = () => {
               <Trophy size={14} className="text-[#FBBC05]" /> Winners Reveal
             </div>
             <div className="text-base font-extrabold text-gray-900">August 6th</div>
-            <p className="text-[11px] text-amber-700 font-medium">AxG People Day Extravaganza</p>
+            <p className="text-[11px] text-amber-700 font-medium">People Day Extravaganza</p>
           </div>
         </div>
       </div>

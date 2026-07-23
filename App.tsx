@@ -248,9 +248,9 @@ const App: React.FC = () => {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 gap-4 bg-white p-6 rounded-3xl shadow-sm border-0">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">
-              <span className="text-[#4285F4]">2nd Annual</span>{" "}
-              <span className="text-[#EA4335]">Global</span>{" "}
-              <span className="text-[#FBBC05]">AxG</span>{" "}
+              <span className="text-[#4285F4]">2nd</span>{" "}
+              <span className="text-[#EA4335]">Annual</span>{" "}
+              <span className="text-[#FBBC05]">Global</span>{" "}
               <span className="text-[#34A853]">Stepathon</span>
             </h1>
             <p className="text-gray-500 mt-1 font-bold text-xs uppercase tracking-wider">
@@ -466,7 +466,7 @@ const App: React.FC = () => {
              </a>
            </div>
 
-           <p className="font-medium text-gray-500 text-xs">© 2026 Inclusion & Diversity + Care • AxG Stepathon</p>
+           <p className="font-medium text-gray-500 text-xs">© 2026 Inclusion & Diversity + Care • Stepathon</p>
            
            {/* Danger Zone */}
            <button 
