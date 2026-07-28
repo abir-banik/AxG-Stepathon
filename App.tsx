@@ -399,8 +399,8 @@ const App: React.FC = () => {
             {/* Stats Dashboard */}
             <DashboardStats totalSteps={totalSteps} activeUserCount={users.length} distanceUnit={distanceUnit} />
 
-            {/* Global Accenture Office Map & 35M Step Goal */}
-            <GlobalOfficeMap teams={teams} users={users} />
+            {/* 35M Global Step Goal Progress Bar */}
+            <GlobalOfficeMap teams={teams} users={users} distanceUnit={distanceUnit} />
 
             {/* Community Photo & Selfie Banner */}
             <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-3xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">

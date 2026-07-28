@@ -187,13 +187,13 @@ const FaqPage: React.FC = () => {
               <Sparkles size={14} className="text-[#4285F4]" /> Give Site Feedback
             </a>
             <a 
-              href="mailto:Sydney.yap@accenture.com"
+              href="mailto:Sydney.yap"
               className="bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#4285F4] px-4 py-2.5 rounded-2xl border border-gray-200 hover:border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
             >
               <Mail size={14} className="text-[#4285F4]" /> Contact Sydney
             </a>
             <a 
-              href="mailto:a.banik@accenture.com"
+              href="mailto:a.banik"
               className="bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#4285F4] px-4 py-2.5 rounded-2xl border border-gray-200 hover:border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
             >
               <Mail size={14} className="text-[#34A853]" /> Contact Abir
@@ -373,10 +373,10 @@ const FaqPage: React.FC = () => {
               </div>
             </div>
             <a 
-              href="mailto:Sydney.yap@accenture.com" 
+              href="mailto:Sydney.yap" 
               className="inline-flex items-center gap-2 text-xs font-bold text-white bg-white/20 hover:bg-white hover:text-gray-900 px-3.5 py-2.5 rounded-xl transition-all w-full justify-center shadow-sm"
             >
-              <Mail size={14} /> Sydney.yap@accenture.com
+              <Mail size={14} /> Sydney.yap
             </a>
           </div>
 
@@ -390,10 +390,10 @@ const FaqPage: React.FC = () => {
               </div>
             </div>
             <a 
-              href="mailto:a.banik@accenture.com" 
+              href="mailto:a.banik" 
               className="inline-flex items-center gap-2 text-xs font-bold text-white bg-white/20 hover:bg-white hover:text-gray-900 px-3.5 py-2.5 rounded-xl transition-all w-full justify-center shadow-sm"
             >
-              <Mail size={14} /> a.banik@accenture.com
+              <Mail size={14} /> a.banik
             </a>
           </div>
         </div>

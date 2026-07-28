@@ -16,13 +16,13 @@ describe('FaqPage Component', () => {
   it('renders interactive host email contact links', () => {
     render(<FaqPage />);
 
-    const sydneyLinks = screen.getAllByRole('link', { name: /sydney\.yap@accenture\.com/i });
+    const sydneyLinks = screen.getAllByRole('link', { name: /sydney\.yap/i });
     expect(sydneyLinks.length).toBeGreaterThan(0);
-    expect(sydneyLinks[0]).toHaveAttribute('href', 'mailto:Sydney.yap@accenture.com');
+    expect(sydneyLinks[0]).toHaveAttribute('href', 'mailto:Sydney.yap');
 
-    const abirLinks = screen.getAllByRole('link', { name: /a\.banik@accenture\.com/i });
+    const abirLinks = screen.getAllByRole('link', { name: /a\.banik/i });
     expect(abirLinks.length).toBeGreaterThan(0);
-    expect(abirLinks[0]).toHaveAttribute('href', 'mailto:a.banik@accenture.com');
+    expect(abirLinks[0]).toHaveAttribute('href', 'mailto:a.banik');
   });
 
   it('filters questions by category tabs and search input', () => {
