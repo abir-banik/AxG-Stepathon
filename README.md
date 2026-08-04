@@ -150,7 +150,7 @@ service cloud.firestore {
     match /racers/{racerId} {
       allow read: if true;
       allow create: if request.resource.data.steps == 0;
-      allow update: if request.resource.data.steps - resource.data.steps <= 50000;
+      allow update: if request.resource.data.steps - resource.data.steps <= 30000;
       allow delete: if false;
     }
     match /teams/{teamId} {

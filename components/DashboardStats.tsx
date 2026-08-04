@@ -17,7 +17,8 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ totalSteps, activeUserC
     ? (TOTAL_GOAL_MILES * 1.60934).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' km'
     : TOTAL_GOAL_MILES.toLocaleString() + ' mi';
 
-  const progressPercent = Math.min((totalSteps / TOTAL_GOAL_STEPS) * 100, 100);
+  const rawProgressPercent = (totalSteps / TOTAL_GOAL_STEPS) * 100;
+  const isGoalCrushed = totalSteps >= TOTAL_GOAL_STEPS;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -48,13 +49,22 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ totalSteps, activeUserC
       {/* Progress Bar */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-center">
         <div className="flex justify-between items-end mb-3">
-            <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider">Race Progress</h3>
-            <span className="text-3xl font-normal text-green-600">{progressPercent.toFixed(2)}%</span>
+            <div>
+              <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider">Race Progress</h3>
+              {isGoalCrushed && (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full inline-block mt-0.5">
+                  🎉 Goal Crushed!
+                </span>
+              )}
+            </div>
+            <span className={`text-3xl font-extrabold ${isGoalCrushed ? 'text-amber-600' : 'text-green-600'}`}>
+              {rawProgressPercent.toFixed(1)}%
+            </span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden p-0.5">
           <div 
-            className="bg-[#34A853] h-3 rounded-full transition-all duration-1000 ease-out"
-            style={{ width: `${progressPercent}%` }}
+            className={`h-full rounded-full transition-all duration-1000 ease-out ${isGoalCrushed ? 'bg-gradient-to-r from-amber-400 to-emerald-500' : 'bg-[#34A853]'}`}
+            style={{ width: `${Math.min(rawProgressPercent, 100)}%` }}
           ></div>
         </div>
       </div>

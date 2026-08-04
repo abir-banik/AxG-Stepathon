@@ -191,7 +191,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                   className="w-full bg-white border border-gray-200 text-lg rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
                   required
                   min="1"
-                  max="50000"
+                  max="30000"
                 />
               </div>
 

@@ -394,9 +394,9 @@ export const api = {
     }
   },
 
-  // Add steps to an existing user for a specific week (Max 50,000 steps per entry)
+  // Add steps to an existing user for a specific week (Max 30,000 steps per entry)
   async addSteps(userId: string, steps: number, week: number, customDate?: string): Promise<User | null> {
-    const MAX_STEPS_PER_ENTRY = 50000; // 25 miles max single entry
+    const MAX_STEPS_PER_ENTRY = 30000; // 15 miles max single entry
     const validSteps = Math.min(Math.max(0, Math.floor(Number(steps) || 0)), MAX_STEPS_PER_ENTRY);
     const validWeek = Math.min(Math.max(1, Math.floor(Number(week) || 1)), 12);
 
@@ -422,7 +422,9 @@ export const api = {
       if (snap.exists()) {
         const userData = snap.data() as User;
         const currentHistory = Array.isArray(userData.stepHistory) ? userData.stepHistory : [];
-        newHistory = [...currentHistory, newEntry];
+        // Replace any existing entry for the same date with the most recent submission
+        const historyWithoutSameDate = currentHistory.filter(e => e.date !== entryDate);
+        newHistory = [...historyWithoutSameDate, newEntry];
       }
 
       // Self-healing totals: always re-sum stepHistory
@@ -456,6 +458,8 @@ export const api = {
       const user = localUsers.find(u => u.id === userId);
       if (user) {
         if (!user.stepHistory) user.stepHistory = [];
+        // Replace any existing entry for the same date with the most recent submission
+        user.stepHistory = user.stepHistory.filter(e => e.date !== entryDate);
         user.stepHistory.push(newEntry);
         
         user.steps = user.stepHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
