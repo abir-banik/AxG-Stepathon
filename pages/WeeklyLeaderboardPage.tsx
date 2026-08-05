@@ -13,7 +13,7 @@ const WEEKLY_DEADLINES: Record<number, string> = {
   1: '2026-07-21T00:00:00.000Z', // Monday July 20 @ 8:00 PM ET
   2: '2026-07-28T00:00:00.000Z', // Monday July 27 @ 8:00 PM ET
   3: '2026-08-04T00:00:00.000Z', // Monday August 3 @ 8:00 PM ET
-  4: '2026-08-06T00:00:00.000Z', // Wednesday August 5 @ 8:00 PM ET
+  4: '2026-08-06T01:00:00.000Z', // Wednesday August 5 @ 8:00 PM EST
 };
 
 const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
@@ -147,9 +147,17 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         </div>
         <div className="space-y-2 flex-1">
           <div>
-            <span className="font-extrabold text-purple-950 text-sm block">🕗 Weekly Submission Deadline: Every Monday @ 8:00 PM ET</span>
+            <span className="font-extrabold text-purple-950 text-sm block">
+              {selectedWeekNum === 4
+                ? '🕗 Final Challenge Deadline: Wednesday, August 5th @ 8:00 PM EST'
+                : '🕗 Weekly Submission Deadline: Every Monday @ 8:00 PM ET'}
+            </span>
             <p className="text-purple-900 font-medium text-xs mt-0.5">
-              Log your steps by <strong>Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!
+              {selectedWeekNum === 4 ? (
+                <>Log all final steps by <strong>Wednesday August 5th at 8:00 PM EST</strong> to count toward final Week 4 & Overall Challenge standings!</>
+              ) : (
+                <>Log your steps by <strong>Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!</>
+              )}
             </p>
           </div>
 
@@ -158,8 +166,13 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
               💡 <strong>What this means for you:</strong>
             </span>
             <ul className="space-y-1 pl-1 text-purple-900 font-medium">
-              <li>• <strong>Convert to your local time:</strong> Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).</li>
-              <li>• <strong>Late logs are never lost:</strong> Steps logged after 8:00 PM ET will still count <strong>100% toward your team's Overall Competition Total</strong>!</li>
+              <li>
+                • <strong>Convert to your local time:</strong>{' '}
+                {selectedWeekNum === 4
+                  ? 'Wed 5:00 PM PST (California) • Wed 9:00 PM ART (Argentina) • Thu 1:00 AM (Dublin) • Thu 5:30 AM IST (India) • Thu 8:00 AM (Manila).'
+                  : 'Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).'}
+              </li>
+              <li>• <strong>Late logs are never lost:</strong> Steps logged after the weekly cutoff will still count <strong>100% toward your team's Overall Competition Total</strong>!</li>
             </ul>
           </div>
         </div>
