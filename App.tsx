@@ -138,26 +138,32 @@ const App: React.FC = () => {
     api.retryConnection();
   };
 
-  const handleAddSteps = async (userId: string, steps: number, week: number, customDate?: string) => {
+  const handleAddSteps = async (userId: string, steps: number, week: number, customDate?: string, bypassMaxLimit: boolean = false) => {
     const now = new Date();
     const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const entryDate = customDate ? customDate.substring(0, 10) : localToday;
     const submittedAt = now.toISOString();
 
-    // Optimistic Update
+    // Optimistic Update with Date Override Logic
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        const newTotal = (u.steps || 0) + steps;
-        const updatedWeekly = { ...u.weeklySteps };
-        updatedWeekly[week] = (updatedWeekly[week] || 0) + steps;
+        const currentHistory = Array.isArray(u.stepHistory) ? u.stepHistory : [];
+        const historyWithoutSameDate = currentHistory.filter(e => e.date !== entryDate);
+        const newHistory = [...historyWithoutSameDate, { amount: steps, date: entryDate, week, submittedAt }];
         
-        const newHistory = [...(u.stepHistory || []), { amount: steps, date: entryDate, week, submittedAt }];
+        const newTotal = newHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        const updatedWeekly: Record<string, number> = {};
+        newHistory.forEach(e => {
+          const wk = String(e.week || 1);
+          updatedWeekly[wk] = (updatedWeekly[wk] || 0) + (Number(e.amount) || 0);
+        });
+
         return { ...u, steps: newTotal, weeklySteps: updatedWeekly, stepHistory: newHistory };
       }
       return u;
     }));
 
-    await api.addSteps(userId, steps, week, customDate);
+    await api.addSteps(userId, steps, week, customDate, bypassMaxLimit);
   };
 
   const handleDeleteStep = async (userId: string, entryIndex: number) => {
@@ -390,6 +396,7 @@ const App: React.FC = () => {
               onDeleteTeam={handleDeleteTeam}
               onAddParticipant={handleAddParticipant}
               onRemoveParticipant={handleRemoveParticipant}
+              onAddSteps={handleAddSteps}
               onHealData={api.healAllRacerData}
               onUpdateAnnouncement={handleUpdateAnnouncement}
               isAdmin={isAdmin}

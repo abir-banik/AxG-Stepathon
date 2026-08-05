@@ -394,9 +394,9 @@ export const api = {
     }
   },
 
-  // Add steps to an existing user for a specific week (Max 30,000 steps per entry)
-  async addSteps(userId: string, steps: number, week: number, customDate?: string): Promise<User | null> {
-    const MAX_STEPS_PER_ENTRY = 30000; // 15 miles max single entry
+  // Add steps to an existing user for a specific week (Max 30,000 steps per entry for participants, host override allows up to 200,000)
+  async addSteps(userId: string, steps: number, week: number, customDate?: string, bypassMaxLimit: boolean = false): Promise<User | null> {
+    const MAX_STEPS_PER_ENTRY = bypassMaxLimit ? 200000 : 30000;
     const validSteps = Math.min(Math.max(0, Math.floor(Number(steps) || 0)), MAX_STEPS_PER_ENTRY);
     const validWeek = Math.min(Math.max(1, Math.floor(Number(week) || 1)), 12);
 

@@ -4,7 +4,8 @@ import { ACCENTURE_GLOBAL_OFFICES } from '../constants';
 import { 
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
   Sparkles, Check, X, Lock, Unlock, Layers, MapPin,
-  Megaphone, Bell, AlertTriangle, Send, CheckCircle2, Flame
+  Megaphone, Bell, AlertTriangle, Send, CheckCircle2, Flame,
+  Footprints, Calendar, Zap, Search, UserCheck
 } from 'lucide-react';
 
 const TEAM_COLORS = [
@@ -26,6 +27,7 @@ interface HostAdminPanelProps {
   onDeleteTeam: (teamId: string) => Promise<void>;
   onAddParticipant: (name: string, teamId: string, teamName: string, iconId: string) => Promise<void>;
   onRemoveParticipant: (participantId: string) => Promise<void>;
+  onAddSteps?: (userId: string, steps: number, week: number, customDate?: string, bypassMaxLimit?: boolean) => Promise<void>;
   onHealData?: () => Promise<{ success: boolean; healedCount: number }>;
   onUpdateAnnouncement?: (announcement: AnnouncementBanner) => Promise<void>;
   isAdmin: boolean;
@@ -40,6 +42,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   onDeleteTeam,
   onAddParticipant,
   onRemoveParticipant,
+  onAddSteps,
   onHealData,
   onUpdateAnnouncement,
   isAdmin,
@@ -48,6 +51,103 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   const [isHealing, setIsHealing] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [passError, setPassError] = useState(false);
+
+  // Searchable Autocomplete & Multi-Entry Host Step Override State
+  const [participantSearchQuery, setParticipantSearchQuery] = useState<string>('');
+  const [selectedOverrideUser, setSelectedOverrideUser] = useState<User | null>(null);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState<boolean>(false);
+
+  interface OverrideEntryRow {
+    id: string;
+    date: string;
+    week: number;
+    steps: string;
+  }
+
+  const computeWeekFromDate = (dateStr: string): number => {
+    if (!dateStr) return 1;
+    if (dateStr >= '2026-08-03') return 4;
+    if (dateStr >= '2026-07-27') return 3;
+    if (dateStr >= '2026-07-20') return 2;
+    return 1;
+  };
+
+  const createInitialOverrideRow = (): OverrideEntryRow => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return {
+      id: `override-row-${Math.random()}`,
+      date: todayStr,
+      week: computeWeekFromDate(todayStr),
+      steps: ''
+    };
+  };
+
+  const [overrideRows, setOverrideRows] = useState<OverrideEntryRow[]>([
+    createInitialOverrideRow()
+  ]);
+  const [isSubmittingOverride, setIsSubmittingOverride] = useState<boolean>(false);
+  const [overrideSuccessMsg, setOverrideSuccessMsg] = useState<string | null>(null);
+
+  const handleAddOverrideRow = () => {
+    setOverrideRows(prev => [...prev, createInitialOverrideRow()]);
+  };
+
+  const handleRemoveOverrideRow = (index: number) => {
+    setOverrideRows(prev => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleOverrideRowChange = (index: number, field: keyof OverrideEntryRow, value: any) => {
+    setOverrideRows(prev => {
+      const updated = [...prev];
+      if (field === 'date') {
+        const week = computeWeekFromDate(value);
+        updated[index] = { ...updated[index], date: value, week };
+      } else {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+      return updated;
+    });
+  };
+
+  const handleHostOverrideSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!onAddSteps || !selectedOverrideUser) return;
+
+    const validRows = overrideRows.filter(r => {
+      const val = parseInt(r.steps, 10);
+      return !isNaN(val) && val > 0 && r.date;
+    });
+
+    if (validRows.length === 0) return;
+
+    setIsSubmittingOverride(true);
+    try {
+      let totalStepsLogged = 0;
+      for (const row of validRows) {
+        const stepCount = parseInt(row.steps, 10);
+        await onAddSteps(selectedOverrideUser.id, stepCount, row.week, row.date, true);
+        totalStepsLogged += stepCount;
+      }
+
+      setOverrideSuccessMsg(`Logged ${validRows.length} entry/entries totaling ${totalStepsLogged.toLocaleString()} steps for ${selectedOverrideUser.name}!`);
+      setOverrideRows([createInitialOverrideRow()]);
+      setSelectedOverrideUser(null);
+      setParticipantSearchQuery('');
+      setTimeout(() => setOverrideSuccessMsg(null), 5000);
+    } finally {
+      setIsSubmittingOverride(false);
+    }
+  };
+
+  const filteredOverrideUsers = users.filter(u => {
+    if (!participantSearchQuery.trim()) return true;
+    const q = participantSearchQuery.toLowerCase();
+    return u.name.toLowerCase().includes(q) || (u.teamName && u.teamName.toLowerCase().includes(q));
+  });
 
   // Announcement Form State
   const [announcementMsg, setAnnouncementMsg] = useState(announcement?.message || '');
@@ -427,6 +527,235 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
               )}
             </div>
           </div>
+        </form>
+      )}
+
+      {/* HOST MANUAL STEP ENTRY & PROOF OVERRIDE (>30K ALLOWED) */}
+      {onAddSteps && (
+        <form onSubmit={handleHostOverrideSubmit} className="bg-gradient-to-r from-purple-50/70 via-indigo-50/70 to-blue-50/70 border border-purple-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-purple-200/80 pb-3 gap-2">
+            <div className="flex items-center gap-2 text-purple-900 font-bold text-sm">
+              <Zap size={18} className="text-purple-600" /> Host Manual Step Entry & Proof Override
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-100/80 border border-purple-200 px-3 py-1 rounded-full">
+              <Footprints size={13} /> Bypasses 30k Step Limit (&gt;30,000 allowed with proof)
+            </span>
+          </div>
+
+          {overrideSuccessMsg && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
+              <span>{overrideSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* STEP 1: PARTICIPANT AUTOCOMPLETE SEARCH */}
+          <div className="space-y-2">
+            <label className="block text-[11px] font-extrabold text-gray-700 uppercase tracking-wider">
+              1. Type Participant Name to Search & Select
+            </label>
+
+            {!selectedOverrideUser ? (
+              <div className="relative">
+                <div className="relative flex items-center">
+                  <Search size={16} className="absolute left-3.5 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    aria-label="Select Participant"
+                    placeholder="Type participant name or team (e.g. Alice)..."
+                    value={participantSearchQuery}
+                    onChange={(e) => {
+                      setParticipantSearchQuery(e.target.value);
+                      setIsSearchDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsSearchDropdownOpen(true)}
+                    className="w-full bg-white border border-gray-200 text-xs rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none shadow-sm font-medium"
+                  />
+                  {participantSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setParticipantSearchQuery('')}
+                      className="absolute right-3 text-gray-400 hover:text-gray-600 p-1"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Autocomplete Dropdown List */}
+                {isSearchDropdownOpen && (
+                  <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-purple-100 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-gray-100 animate-fade-in">
+                    {filteredOverrideUsers.length === 0 ? (
+                      <div className="p-3 text-xs text-gray-400 italic text-center">
+                        No matching participants found.
+                      </div>
+                    ) : (
+                      filteredOverrideUsers.map(u => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedOverrideUser(u);
+                            setParticipantSearchQuery(u.name);
+                            setIsSearchDropdownOpen(false);
+                          }}
+                          className="w-full text-left p-3 hover:bg-purple-50/80 transition-colors flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
+                              {u.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-gray-900 group-hover:text-purple-700">{u.name}</div>
+                              <div className="text-[10px] text-gray-500 font-medium">{u.teamName || 'Unassigned Team'}</div>
+                            </div>
+                          </div>
+                          <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">
+                            {(u.steps || 0).toLocaleString()} steps
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Selected Participant Chip */
+              <div className="flex items-center justify-between bg-white border border-purple-200 p-3.5 rounded-xl shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                    {selectedOverrideUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
+                      <span>{selectedOverrideUser.name}</span>
+                      <UserCheck size={14} className="text-emerald-600" />
+                    </div>
+                    <div className="text-[11px] text-gray-500 font-medium">
+                      Team: <span className="font-bold text-gray-700">{selectedOverrideUser.teamName || 'No Team'}</span> • Current Total: <span className="font-bold text-purple-700">{(selectedOverrideUser.steps || 0).toLocaleString()} steps</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedOverrideUser(null);
+                    setParticipantSearchQuery('');
+                  }}
+                  className="text-xs font-bold text-gray-500 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-gray-200"
+                >
+                  <X size={13} /> Switch Participant
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* STEP 2: MULTIPLE ENTRY ROWS (WHEN PARTICIPANT IS SELECTED) */}
+          {selectedOverrideUser && (
+            <div className="space-y-4 pt-2 border-t border-purple-200/60 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] font-extrabold text-gray-700 uppercase tracking-wider">
+                  2. Add Step Entries for {selectedOverrideUser.name} ({overrideRows.length} Entry Row{overrideRows.length === 1 ? '' : 's'})
+                </label>
+                <button
+                  type="button"
+                  onClick={handleAddOverrideRow}
+                  className="text-xs font-bold text-purple-700 hover:text-purple-900 bg-white hover:bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200 shadow-2xs transition-all flex items-center gap-1"
+                >
+                  <Plus size={14} /> Add Another Entry
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {overrideRows.map((row, rowIdx) => (
+                  <div key={row.id} className="relative bg-white border border-purple-100 rounded-xl p-4 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
+                    <span className="text-xs font-black text-purple-600 w-5 text-center hidden sm:inline-block">
+                      #{rowIdx + 1}
+                    </span>
+
+                    {/* Date Picker */}
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-extrabold text-gray-500 mb-1 uppercase tracking-wider">
+                        Entry Date
+                      </label>
+                      <input
+                        type="date"
+                        value={row.date}
+                        onChange={(e) => handleOverrideRowChange(rowIdx, 'date', e.target.value)}
+                        className="w-full bg-gray-50/70 border border-gray-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500 outline-none font-medium shadow-2xs"
+                        required
+                      />
+                    </div>
+
+                    {/* Week Selector */}
+                    <div className="w-full sm:w-28">
+                      <label className="block text-[10px] font-extrabold text-gray-500 mb-1 uppercase tracking-wider">
+                        Week
+                      </label>
+                      <select
+                        value={row.week}
+                        onChange={(e) => handleOverrideRowChange(rowIdx, 'week', Number(e.target.value))}
+                        className="w-full bg-gray-50/70 border border-gray-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500 outline-none font-medium shadow-2xs"
+                      >
+                        <option value={1}>Week 1</option>
+                        <option value={2}>Week 2</option>
+                        <option value={3}>Week 3</option>
+                        <option value={4}>Week 4</option>
+                      </select>
+                    </div>
+
+                    {/* Step Count */}
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-extrabold text-gray-500 mb-1 uppercase tracking-wider">
+                        Step Count (&gt;30k allowed)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 45000"
+                        value={row.steps}
+                        onChange={(e) => handleOverrideRowChange(rowIdx, 'steps', e.target.value)}
+                        className="w-full bg-gray-50/70 border border-gray-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500 outline-none font-medium shadow-2xs"
+                        min="1"
+                        max="200000"
+                        required
+                      />
+                    </div>
+
+                    {/* Remove Row Button */}
+                    {overrideRows.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOverrideRow(rowIdx)}
+                        className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors self-end sm:self-center"
+                        title="Remove Entry Row"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleAddOverrideRow}
+                  className="w-full sm:w-auto border-2 border-dashed border-purple-300 hover:border-purple-500 text-purple-700 hover:bg-purple-50 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Plus size={15} /> Add Another Entry Row
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingOverride || overrideRows.every(r => !r.steps.trim())}
+                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Zap size={15} /> {isSubmittingOverride ? 'Saving All Entries...' : `Save All (${overrideRows.length}) Step Overrides`}
+                </button>
+              </div>
+            </div>
+          )}
         </form>
       )}
 

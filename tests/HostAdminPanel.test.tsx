@@ -161,4 +161,58 @@ describe('HostAdminPanel Component', () => {
     expect(onAddParticipant).toHaveBeenNthCalledWith(1, 'Alice Smith', 'new-team-id', 'Manila Trailblazers', 'smile');
     expect(onAddParticipant).toHaveBeenNthCalledWith(2, 'Bob Jones', 'new-team-id', 'Manila Trailblazers', 'smile');
   });
+
+  it('submits multiple manual step overrides exceeding 30,000 steps with autocomplete search', async () => {
+    const onAddSteps = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <HostAdminPanel
+        teams={mockTeams}
+        users={mockUsers}
+        onAddTeam={vi.fn()}
+        onDeleteTeam={vi.fn()}
+        onAddParticipant={vi.fn()}
+        onRemoveParticipant={vi.fn()}
+        onAddSteps={onAddSteps}
+        isAdmin={true}
+        setIsAdmin={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Host Manual Step Entry & Proof Override')).toBeInTheDocument();
+
+    // Type in autocomplete search input
+    const searchInput = screen.getByPlaceholderText('Type participant name or team (e.g. Alice)...');
+    fireEvent.change(searchInput, { target: { value: 'Alice' } });
+
+    // Select participant from dropdown menu
+    const participantBtn = screen.getByRole('button', { name: /alice/i });
+    fireEvent.click(participantBtn);
+
+    // Verify participant chip is shown
+    expect(screen.getByText('Switch Participant')).toBeInTheDocument();
+
+    // Enter steps > 30k in row 1
+    const stepsInput1 = screen.getByPlaceholderText('e.g. 45000');
+    fireEvent.change(stepsInput1, { target: { value: '45000' } });
+
+    // Click "Add Another Entry" row
+    const addRowBtn = screen.getByText('Add Another Entry');
+    fireEvent.click(addRowBtn);
+
+    // Enter steps in row 2
+    const stepsInputs = screen.getAllByPlaceholderText('e.g. 45000');
+    expect(stepsInputs.length).toBe(2);
+    fireEvent.change(stepsInputs[1], { target: { value: '35000' } });
+
+    // Submit batch form
+    const submitBtn = screen.getByRole('button', { name: /save all \(2\) step overrides/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(onAddSteps).toHaveBeenCalledTimes(2);
+      expect(onAddSteps).toHaveBeenNthCalledWith(1, 'user-1', 45000, expect.any(Number), expect.any(String), true);
+      expect(onAddSteps).toHaveBeenNthCalledWith(2, 'user-1', 35000, expect.any(Number), expect.any(String), true);
+    });
+  });
 });

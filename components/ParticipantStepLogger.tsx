@@ -21,6 +21,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>('ALL');
   const [sortOrder, setSortOrder] = useState<'name-asc' | 'name-desc'>('name-asc');
+  const [historySortOrder, setHistorySortOrder] = useState<'date-desc' | 'date-asc' | 'updated-desc'>('date-desc');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -207,10 +208,23 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
           {/* HISTORY LOG TABLE */}
           <div className="bg-white rounded-xl border border-blue-100 overflow-hidden">
-            <div className="px-4 py-2.5 bg-blue-100/40 flex items-center justify-between border-b border-blue-100">
+            <div className="px-4 py-2.5 bg-blue-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-blue-100">
               <span className="text-xs font-bold text-blue-800 uppercase tracking-wide flex items-center gap-1.5">
-                <History size={14} /> Step History for {selectedUser.name}
+                <History size={14} /> Step History for {selectedUser.name} ({selectedUser.stepHistory?.length || 0} entries)
               </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-blue-700">Sort by:</span>
+                <select
+                  aria-label="Sort step history"
+                  value={historySortOrder}
+                  onChange={(e) => setHistorySortOrder(e.target.value as any)}
+                  className="bg-white border border-blue-200 text-xs font-bold text-gray-700 rounded-lg px-2.5 py-1 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-2xs"
+                >
+                  <option value="date-desc">Newest Date First (Default)</option>
+                  <option value="date-asc">Oldest Date First</option>
+                  <option value="updated-desc">Recently Added First</option>
+                </select>
+              </div>
             </div>
 
             <div className="max-h-48 overflow-y-auto">
@@ -227,10 +241,24 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {[...selectedUser.stepHistory].reverse().map((entry, reverseIndex) => {
-                      const realIndex = selectedUser.stepHistory!.length - 1 - reverseIndex;
-                      return (
-                        <tr key={realIndex} className="hover:bg-blue-50/30 transition-colors">
+                    {(selectedUser.stepHistory || [])
+                      .map((entry, originalIndex) => ({ entry, originalIndex }))
+                      .sort((a, b) => {
+                        if (historySortOrder === 'date-desc') {
+                          return b.entry.date.localeCompare(a.entry.date);
+                        }
+                        if (historySortOrder === 'date-asc') {
+                          return a.entry.date.localeCompare(b.entry.date);
+                        }
+                        if (historySortOrder === 'updated-desc') {
+                          const timeA = a.entry.submittedAt ? new Date(a.entry.submittedAt).getTime() : a.originalIndex;
+                          const timeB = b.entry.submittedAt ? new Date(b.entry.submittedAt).getTime() : b.originalIndex;
+                          return timeB - timeA;
+                        }
+                        return 0;
+                      })
+                      .map(({ entry, originalIndex }) => (
+                        <tr key={originalIndex} className="hover:bg-blue-50/30 transition-colors">
                           <td className="px-4 py-2.5 text-gray-500">
                             {formatEntryDate(entry.date)}
                           </td>
@@ -239,7 +267,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                           <td className="px-4 py-2.5 text-right">
                             <button
                               type="button"
-                              onClick={() => onDeleteStep(selectedUser.id, realIndex)}
+                              onClick={() => onDeleteStep(selectedUser.id, originalIndex)}
                               className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
                               title="Delete entry"
                             >
@@ -247,8 +275,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                             </button>
                           </td>
                         </tr>
-                      );
-                    })}
+                      ))}
                   </tbody>
                 </table>
               )}

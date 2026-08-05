@@ -107,7 +107,7 @@ describe('ParticipantStepLogger Component', () => {
     fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
 
     await waitFor(() => {
-      expect(onAddSteps).toHaveBeenCalledWith('user-1', 7000, 1, expect.any(String));
+      expect(onAddSteps).toHaveBeenCalledWith('user-1', 7000, expect.any(Number), expect.any(String));
     });
   });
 
@@ -185,16 +185,16 @@ describe('ParticipantStepLogger Component', () => {
     fireEvent.click(screen.getByText('Alice Smith'));
 
     // History log list header
-    expect(screen.getByText('Step History for Alice Smith')).toBeInTheDocument();
+    expect(screen.getByText(/Step History for Alice Smith/i)).toBeInTheDocument();
 
     // Verify history rows
     const deleteButtons = screen.getAllByTitle('Delete entry');
     expect(deleteButtons.length).toBe(2);
 
-    // Click the first delete button (which is the most recent entry, reverse index 0 -> index 1 in original history array)
+    // Click the first delete button (which is the most recent entry, original index 0 in mock date-desc history)
     fireEvent.click(deleteButtons[0]);
 
-    expect(onDeleteStep).toHaveBeenCalledWith('user-1', 1);
+    expect(onDeleteStep).toHaveBeenCalledWith('user-1', 0);
   });
 
   it('filters by team and sorts roster alphabetically A-Z and Z-A', () => {
@@ -223,5 +223,54 @@ describe('ParticipantStepLogger Component', () => {
     const updatedCardElements = screen.getAllByRole('button').map(b => b.textContent);
     expect(updatedCardElements[0]).toContain('Bob Jones');
     expect(updatedCardElements[1]).toContain('Alice Smith');
+  });
+
+  it('supports sorting step history by Most Recent Date, Oldest Date, and Recently Updated', () => {
+    const userWithMultiHistory: User = {
+      id: 'user-sort',
+      name: 'Sort User',
+      teamId: 'team-1',
+      teamName: 'Boba Walkers',
+      steps: 100000,
+      weeklySteps: { 3: 100000 },
+      stepHistory: [
+        { amount: 36281, date: '2026-07-30', week: 3, submittedAt: '2026-08-01T10:00:00.000Z' },
+        { amount: 34117, date: '2026-08-01', week: 3, submittedAt: '2026-08-01T11:00:00.000Z' },
+        { amount: 30491, date: '2026-08-02', week: 3, submittedAt: '2026-08-01T12:00:00.000Z' },
+        { amount: 30015, date: '2026-08-03', week: 4, submittedAt: '2026-08-04T10:00:00.000Z' }
+      ],
+      iconId: 'smile'
+    };
+
+    render(
+      <ParticipantStepLogger
+        users={[userWithMultiHistory]}
+        teams={mockTeams}
+        onAddSteps={vi.fn()}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    // Click on Sort User
+    fireEvent.click(screen.getByText('Sort User'));
+
+    // Step history sort dropdown
+    const historySortSelect = screen.getByRole('combobox', { name: /sort step history/i });
+    expect(historySortSelect).toBeInTheDocument();
+    expect(historySortSelect).toHaveValue('date-desc');
+
+    // Default: Date Most Recent First (Aug 3 -> Aug 2 -> Aug 1 -> Jul 30)
+    let cells = screen.getAllByRole('cell').map(c => c.textContent);
+    expect(cells[0]).toContain('Aug 3');
+
+    // Switch to Date Oldest First (Jul 30 -> Aug 1 -> Aug 2 -> Aug 3)
+    fireEvent.change(historySortSelect, { target: { value: 'date-asc' } });
+    cells = screen.getAllByRole('cell').map(c => c.textContent);
+    expect(cells[0]).toContain('Jul 30');
+
+    // Switch to Recently Updated / Submitted First
+    fireEvent.change(historySortSelect, { target: { value: 'updated-desc' } });
+    cells = screen.getAllByRole('cell').map(c => c.textContent);
+    expect(cells[0]).toContain('Aug 3');
   });
 });

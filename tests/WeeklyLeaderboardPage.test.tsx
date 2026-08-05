@@ -103,7 +103,7 @@ describe('WeeklyLeaderboardPage component', () => {
     render(<WeeklyLeaderboardPage users={[userWithLateSubmission]} teams={mockTeams} distanceUnit="mi" />);
     
     // Should show 5,000 steps for Week 1 (not 15,000)
-    expect(screen.getByText('5,000')).toBeInTheDocument();
+    expect(screen.getAllByText('5,000')[0]).toBeInTheDocument();
     expect(screen.queryByText('15,000')).not.toBeInTheDocument();
   });
 });

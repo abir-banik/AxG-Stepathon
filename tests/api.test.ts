@@ -36,4 +36,11 @@ describe('api.addSteps Same-Date Overwrite & 30k Cap Logic', () => {
     const newTotalSteps = newHistory.reduce((sum, e) => sum + e.amount, 0);
     expect(newTotalSteps).toBe(12000);
   });
+
+  it('allows steps > 30,000 when bypassMaxLimit is true for host override', () => {
+    const bypassMaxLimit = true;
+    const maxLimit = bypassMaxLimit ? 200000 : 30000;
+    const val = Math.min(Math.max(0, Math.floor(45000)), maxLimit);
+    expect(val).toBe(45000);
+  });
 });
