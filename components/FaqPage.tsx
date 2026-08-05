@@ -30,7 +30,7 @@ const FAQ_ITEMS: FaqItem[] = [
         <ul className="list-disc list-inside space-y-1 text-gray-600 pl-2">
           <li><strong className="text-gray-900">Sign-Up Window:</strong> July 6th – July 10th</li>
           <li><strong className="text-gray-900">Stepping Challenge:</strong> July 13th – August 5th</li>
-          <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Wednesday, August 5th at 8:00 PM EST</li>
+          <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Tonight @ 12:00 AM PST / 3:00 AM EST</li>
           <li><strong className="text-gray-900">Winners Reveal:</strong> People Day Extravaganza on Thursday, August 6th! 🏆</li>
         </ul>
       </div>
@@ -77,7 +77,7 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'What if I forget to log my steps on a specific day?',
     answer: (
       <p>
-        No problem at all! You don't have to log every single day in real-time. If you miss logging a day, simply use the date picker in your step logger to pick the prior date and add your steps. Just be sure all your steps are entered before the competition deadline on <strong className="text-gray-900">Wednesday, August 5th at 8:00 PM EST</strong>.
+        No problem at all! You don't have to log every single day in real-time. If you miss logging a day, simply use the date picker in your step logger to pick the prior date and add your steps. Just be sure all your steps are entered before the competition deadline <strong className="text-gray-900">tonight at 12:00 AM PST / 3:00 AM EST</strong>. Please double-check your step counts before submitting!
       </p>
     )
   },
@@ -223,7 +223,7 @@ const FaqPage: React.FC = () => {
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
               <Clock size={14} className="text-[#EA4335]" /> Final Cutoff
             </div>
-            <div className="text-base font-extrabold text-gray-900">Aug 5 @ 8:00 PM EST</div>
+            <div className="text-base font-extrabold text-gray-900">Tonight @ 12 AM PST / 3 AM EST</div>
             <p className="text-[11px] text-gray-400 font-medium">Step Logging Deadline</p>
           </div>
 

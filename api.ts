@@ -72,10 +72,10 @@ const saveLocalTeams = (teams: Team[]) => {
 };
 
 const DEFAULT_ANNOUNCEMENT: AnnouncementBanner = {
-  message: "📢 Welcome to the 2nd Annual Global Stepathon! Remember to log your daily steps and submit by Monday 8:00 PM ET for weekly awards!",
-  type: "info",
+  message: "📢 Final Step Submission Deadline: Please submit all your final steps by tonight at 12:00 AM PST / 3:00 AM EST! Please double-check your step counts to ensure all your entries are recorded!",
+  type: "warning",
   active: true,
-  updatedAt: "2026-07-22T00:00:00.000Z"
+  updatedAt: new Date().toISOString()
 };
 
 const getLocalAnnouncement = (): AnnouncementBanner => {
@@ -405,6 +405,12 @@ export const api = {
     const now = new Date();
     const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const entryDate = customDate ? customDate.substring(0, 10) : localToday;
+
+    // Disallow step entries for dates after August 5th, 2026 unless admin bypass is active
+    if (!bypassMaxLimit && entryDate > '2026-08-05') {
+      return null;
+    }
+
     const submittedAt = now.toISOString();
 
     const newEntry: StepEntry = {

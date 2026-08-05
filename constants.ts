@@ -5,7 +5,7 @@ export const TOTAL_GOAL_STEPS = GLOBAL_STEP_GOAL;
 export const STEPS_PER_MILE = 2000;
 export const TOTAL_GOAL_MILES = GLOBAL_STEP_GOAL / STEPS_PER_MILE;
 export const MAX_USERS = 200;
-export const TOTAL_WEEKS = 4; // 4-Week Challenge (July 13th - Aug 7th)
+export const TOTAL_WEEKS = 4; // 4-Week Challenge (July 13th - Aug 5th)
 
 export interface WeekDefinition {
   weekNumber: number;

@@ -60,7 +60,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
       finalDate = EVENT_END_DATE;
     } else if (val > todayStr) {
       alert("You can only log steps for today or a past date.");
-      finalDate = todayStr < EVENT_START_DATE ? EVENT_START_DATE : todayStr;
+      finalDate = todayStr < EVENT_START_DATE ? EVENT_START_DATE : (todayStr > EVENT_END_DATE ? EVENT_END_DATE : todayStr);
     }
     setSelectedDate(finalDate);
     setSelectedWeek(computeWeekFromDate(finalDate));

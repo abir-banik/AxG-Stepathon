@@ -260,7 +260,7 @@ const App: React.FC = () => {
               <span className="text-[#34A853]">Stepathon</span>
             </h1>
             <p className="text-gray-500 mt-1 font-bold text-xs uppercase tracking-wider">
-              Inclusion & Diversity + Care • July 13 – August 7, 2026
+              Inclusion & Diversity + Care • July 13 – August 5, 2026
             </p>
             <div className="mt-2.5 inline-flex flex-wrap items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-100">
               <span>🌍 10+ Countries</span>

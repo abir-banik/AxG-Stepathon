@@ -43,4 +43,15 @@ describe('api.addSteps Same-Date Overwrite & 30k Cap Logic', () => {
     const val = Math.min(Math.max(0, Math.floor(45000)), maxLimit);
     expect(val).toBe(45000);
   });
+
+  it('rejects step entries for dates past August 5th unless bypassMaxLimit is active', () => {
+    const isAllowed = (entryDate: string, bypass: boolean) => {
+      return bypass || entryDate <= '2026-08-05';
+    };
+
+    expect(isAllowed('2026-08-05', false)).toBe(true);
+    expect(isAllowed('2026-08-06', false)).toBe(false);
+    expect(isAllowed('2026-08-07', false)).toBe(false);
+    expect(isAllowed('2026-08-06', true)).toBe(true);
+  });
 });

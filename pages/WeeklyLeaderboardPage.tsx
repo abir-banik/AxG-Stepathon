@@ -13,7 +13,7 @@ const WEEKLY_DEADLINES: Record<number, string> = {
   1: '2026-07-21T00:00:00.000Z', // Monday July 20 @ 8:00 PM ET
   2: '2026-07-28T00:00:00.000Z', // Monday July 27 @ 8:00 PM ET
   3: '2026-08-04T00:00:00.000Z', // Monday August 3 @ 8:00 PM ET
-  4: '2026-08-06T01:00:00.000Z', // Wednesday August 5 @ 8:00 PM EST
+  4: '2026-08-06T14:00:00.000Z', // Thursday August 6 @ 9:00 AM EST (Host grace period cutoff; public banners display Aug 5 @ 8:00 PM EST)
 };
 
 const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
@@ -98,7 +98,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-purple-100">
-              <Calendar size={14} /> 4-Week Challenge (July 13th – August 7th)
+              <Calendar size={14} /> 4-Week Challenge (July 13th – August 5th)
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Weekly Leaderboard</h2>
             <p className="text-purple-100 text-sm max-w-xl">
@@ -149,12 +149,12 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
           <div>
             <span className="font-extrabold text-purple-950 text-sm block">
               {selectedWeekNum === 4
-                ? '🕗 Final Challenge Deadline: Wednesday, August 5th @ 8:00 PM EST'
+                ? '🕗 Final Challenge Deadline: Tonight @ 12:00 AM PST / 3:00 AM EST'
                 : '🕗 Weekly Submission Deadline: Every Monday @ 8:00 PM ET'}
             </span>
             <p className="text-purple-900 font-medium text-xs mt-0.5">
               {selectedWeekNum === 4 ? (
-                <>Log all final steps by <strong>Wednesday August 5th at 8:00 PM EST</strong> to count toward final Week 4 & Overall Challenge standings!</>
+                <>Log all final steps by <strong>Tonight at 12:00 AM PST / 3:00 AM EST</strong> to count toward final Week 4 & Overall Challenge standings! Please double-check your step counts to ensure all entries are recorded.</>
               ) : (
                 <>Log your steps by <strong>Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!</>
               )}
@@ -169,10 +169,10 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
               <li>
                 • <strong>Convert to your local time:</strong>{' '}
                 {selectedWeekNum === 4
-                  ? 'Wed 5:00 PM PST (California) • Wed 9:00 PM ART (Argentina) • Thu 1:00 AM (Dublin) • Thu 5:30 AM IST (India) • Thu 8:00 AM (Manila).'
+                  ? 'Tonight 12:00 AM PST (California) • Tonight 3:00 AM EST (New York) • Thu 4:00 AM ART (Argentina) • Thu 8:00 AM (Dublin) • Thu 12:30 PM IST (India) • Thu 3:00 PM (Manila).'
                   : 'Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).'}
               </li>
-              <li>• <strong>Late logs are never lost:</strong> Steps logged after the weekly cutoff will still count <strong>100% toward your team's Overall Competition Total</strong>!</li>
+              <li>• <strong>Double check your steps:</strong> Verify all daily entries in your logger before the deadline!</li>
             </ul>
           </div>
         </div>
