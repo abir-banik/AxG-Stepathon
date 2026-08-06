@@ -5,8 +5,15 @@ import {
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
   Sparkles, Check, X, Lock, Unlock, Layers, MapPin,
   Megaphone, Bell, AlertTriangle, Send, CheckCircle2, Flame,
-  Footprints, Calendar, Zap, Search, UserCheck
+  Footprints, Calendar, Zap, Search, UserCheck, Download,
+  FileSpreadsheet, FileText, Database, Award
 } from 'lucide-react';
+import { 
+  downloadMasterRosterCSV, 
+  downloadTeamSummaryCSV, 
+  downloadDailyActivityLogCSV, 
+  downloadRawJSONBackup 
+} from '../utils/exportHelpers';
 
 const TEAM_COLORS = [
   { name: 'Google Blue', hex: '#4285F4', bg: 'bg-[#4285F4]' },
@@ -51,6 +58,12 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   const [isHealing, setIsHealing] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [passError, setPassError] = useState(false);
+  const [exportedItem, setExportedItem] = useState<string | null>(null);
+
+  const handleExportNotify = (type: string) => {
+    setExportedItem(type);
+    setTimeout(() => setExportedItem(null), 2500);
+  };
 
   // Searchable Autocomplete & Multi-Entry Host Step Override State
   const [participantSearchQuery, setParticipantSearchQuery] = useState<string>('');
@@ -372,6 +385,116 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
           >
             Close Admin Mode
           </button>
+        </div>
+      </div>
+
+      {/* DATA EXPORT & COMPETITION REPORTS */}
+      <div className="bg-gradient-to-r from-emerald-50/70 via-teal-50/70 to-cyan-50/70 border border-emerald-200/80 rounded-2xl p-6 space-y-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-emerald-200/80 pb-3 gap-2">
+          <div className="flex items-center gap-2 text-emerald-950 font-bold text-sm">
+            <Download size={18} className="text-emerald-700" /> Competition Data Export & Reports
+          </div>
+          <span className="text-xs text-emerald-800 font-medium">
+            1-Click CSVs for Excel / Google Sheets & JSON Backup
+          </span>
+        </div>
+
+        <p className="text-xs text-gray-600 font-medium">
+          Download formatted competition standings, weekly step breakdowns, and full audit logs for executive updates, awards calculation, and record archiving.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+          {/* Card 1: Master Participant Roster CSV */}
+          <div className="bg-white border border-emerald-100 p-4 rounded-xl shadow-2xs flex flex-col justify-between space-y-3 hover:border-emerald-300 transition-all">
+            <div>
+              <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
+                <FileSpreadsheet size={16} className="text-emerald-600 flex-shrink-0" /> Master Roster (CSV)
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Individual rankings, Week 1–4 step totals, miles, km, and active days logged.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                downloadMasterRosterCSV(users, teams);
+                handleExportNotify('master');
+              }}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              {exportedItem === 'master' ? <Check size={14} /> : <Download size={14} />}
+              {exportedItem === 'master' ? 'Downloaded Roster!' : 'Export Roster (.csv)'}
+            </button>
+          </div>
+
+          {/* Card 2: Team Standings Summary CSV */}
+          <div className="bg-white border border-emerald-100 p-4 rounded-xl shadow-2xs flex flex-col justify-between space-y-3 hover:border-emerald-300 transition-all">
+            <div>
+              <div className="flex items-center gap-2 text-teal-900 font-bold text-xs">
+                <Award size={16} className="text-teal-600 flex-shrink-0" /> Team Standings (CSV)
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Official team ranks, total steps, miles, avg/racer, and top contributor metrics.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                downloadTeamSummaryCSV(users, teams);
+                handleExportNotify('teams');
+              }}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              {exportedItem === 'teams' ? <Check size={14} /> : <Download size={14} />}
+              {exportedItem === 'teams' ? 'Downloaded Teams!' : 'Export Teams (.csv)'}
+            </button>
+          </div>
+
+          {/* Card 3: Granular Daily Activity Log CSV */}
+          <div className="bg-white border border-emerald-100 p-4 rounded-xl shadow-2xs flex flex-col justify-between space-y-3 hover:border-emerald-300 transition-all">
+            <div>
+              <div className="flex items-center gap-2 text-cyan-900 font-bold text-xs">
+                <FileText size={16} className="text-cyan-600 flex-shrink-0" /> Daily Activity Log (CSV)
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Full granular audit trail of every step submission with UTC timestamps.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                downloadDailyActivityLogCSV(users, teams);
+                handleExportNotify('daily');
+              }}
+              className="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              {exportedItem === 'daily' ? <Check size={14} /> : <Download size={14} />}
+              {exportedItem === 'daily' ? 'Downloaded Logs!' : 'Export Activity (.csv)'}
+            </button>
+          </div>
+
+          {/* Card 4: Complete Raw JSON Database Backup */}
+          <div className="bg-white border border-emerald-100 p-4 rounded-xl shadow-2xs flex flex-col justify-between space-y-3 hover:border-emerald-300 transition-all">
+            <div>
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs">
+                <Database size={16} className="text-slate-600 flex-shrink-0" /> Raw JSON Backup
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Complete structured JSON database snapshot for archive, backup, or migrations.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                downloadRawJSONBackup(users, teams, announcement);
+                handleExportNotify('json');
+              }}
+              className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              {exportedItem === 'json' ? <Check size={14} /> : <Download size={14} />}
+              {exportedItem === 'json' ? 'Downloaded JSON!' : 'Download JSON (.json)'}
+            </button>
+          </div>
         </div>
       </div>
 

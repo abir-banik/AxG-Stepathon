@@ -215,4 +215,48 @@ describe('HostAdminPanel Component', () => {
       expect(onAddSteps).toHaveBeenNthCalledWith(2, 'user-1', 35000, expect.any(Number), expect.any(String), true);
     });
   });
+
+  it('renders Competition Data Export buttons and triggers downloads', () => {
+    // Mock URL.createObjectURL and URL.revokeObjectURL
+    global.URL.createObjectURL = vi.fn().mockReturnValue('mock-blob-url');
+    global.URL.revokeObjectURL = vi.fn();
+
+    render(
+      <HostAdminPanel
+        teams={mockTeams}
+        users={mockUsers}
+        onAddTeam={vi.fn()}
+        onDeleteTeam={vi.fn()}
+        onAddParticipant={vi.fn()}
+        onRemoveParticipant={vi.fn()}
+        isAdmin={true}
+        setIsAdmin={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Competition Data Export & Reports')).toBeInTheDocument();
+    
+    const exportRosterBtn = screen.getByRole('button', { name: /export roster \(\.csv\)/i });
+    const exportTeamsBtn = screen.getByRole('button', { name: /export teams \(\.csv\)/i });
+    const exportLogsBtn = screen.getByRole('button', { name: /export activity \(\.csv\)/i });
+    const downloadJsonBtn = screen.getByRole('button', { name: /download json \(\.json\)/i });
+
+    expect(exportRosterBtn).toBeInTheDocument();
+    expect(exportTeamsBtn).toBeInTheDocument();
+    expect(exportLogsBtn).toBeInTheDocument();
+    expect(downloadJsonBtn).toBeInTheDocument();
+
+    // Click buttons to verify execution without error
+    fireEvent.click(exportRosterBtn);
+    expect(screen.getByText('Downloaded Roster!')).toBeInTheDocument();
+
+    fireEvent.click(exportTeamsBtn);
+    expect(screen.getByText('Downloaded Teams!')).toBeInTheDocument();
+
+    fireEvent.click(exportLogsBtn);
+    expect(screen.getByText('Downloaded Logs!')).toBeInTheDocument();
+
+    fireEvent.click(downloadJsonBtn);
+    expect(screen.getByText('Downloaded JSON!')).toBeInTheDocument();
+  });
 });
