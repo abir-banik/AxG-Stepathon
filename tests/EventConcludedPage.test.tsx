@@ -18,11 +18,12 @@ describe('EventConcludedPage Component', () => {
 
     expect(screen.getByText('10+')).toBeInTheDocument();
     expect(screen.getByText('Countries')).toBeInTheDocument();
-    expect(screen.getByText('39+')).toBeInTheDocument();
+    expect(screen.getByText('46')).toBeInTheDocument();
     expect(screen.getByText('Teams')).toBeInTheDocument();
-    expect(screen.getByText('135+')).toBeInTheDocument();
+    expect(screen.getByText('276')).toBeInTheDocument();
     expect(screen.getByText('Racers')).toBeInTheDocument();
-    expect(screen.getByText('35M')).toBeInTheDocument();
+    expect(screen.getByText('45.4M')).toBeInTheDocument();
+    expect(screen.getByText('Steps Logged')).toBeInTheDocument();
   });
 
   it('renders feedback link and final results notification cards', () => {

@@ -70,21 +70,21 @@ export const EventConcludedPage: React.FC<EventConcludedPageProps> = ({ onAdminU
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-                <div className="text-2xl font-black text-[#EA4335]">39+</div>
+                <div className="text-2xl font-black text-[#EA4335]">46</div>
                 <div className="text-xs font-bold text-gray-600 mt-1 flex items-center justify-center gap-1">
                   <Users size={12} className="text-red-500" /> Teams
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-                <div className="text-2xl font-black text-[#FBBC05]">135+</div>
+                <div className="text-2xl font-black text-[#FBBC05]">276</div>
                 <div className="text-xs font-bold text-gray-600 mt-1 flex items-center justify-center gap-1">
                   <Award size={12} className="text-amber-500" /> Racers
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-                <div className="text-2xl font-black text-[#34A853]">35M</div>
+                <div className="text-2xl font-black text-[#34A853]">45.4M</div>
                 <div className="text-xs font-bold text-gray-600 mt-1 flex items-center justify-center gap-1">
-                  <CheckCircle2 size={12} className="text-green-500" /> Global Goal
+                  <CheckCircle2 size={12} className="text-green-500" /> Steps Logged
                 </div>
               </div>
             </div>
