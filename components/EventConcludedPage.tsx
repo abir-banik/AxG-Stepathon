@@ -143,7 +143,7 @@ export const EventConcludedPage: React.FC<EventConcludedPageProps> = ({ onAdminU
           © 2026 Inclusion & Diversity + Care • Stepathon
         </p>
         <p className="text-gray-400">
-          See you at the 3rd Annual Global Stepathon in 2027! 👟🌍
+          See you at the 3rd Annual Global Stepathon! 👟🌍
         </p>
       </footer>
     </div>
