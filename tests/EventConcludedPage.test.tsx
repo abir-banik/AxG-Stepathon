@@ -25,10 +25,11 @@ describe('EventConcludedPage Component', () => {
     expect(screen.getByText('35M')).toBeInTheDocument();
   });
 
-  it('renders feedback link and awards notification cards', () => {
+  it('renders feedback link and final results notification cards', () => {
     render(<EventConcludedPage />);
 
-    expect(screen.getByText('Awards & Recognition')).toBeInTheDocument();
+    expect(screen.getByText('Final Results & Standings')).toBeInTheDocument();
+    expect(screen.getByText(/Final leaderboards, team rankings, etc\. are out!/i)).toBeInTheDocument();
     expect(screen.getByText('Share Your Feedback & Memories')).toBeInTheDocument();
 
     const feedbackLink = screen.getByRole('link', { name: /Open Feedback Form/i });

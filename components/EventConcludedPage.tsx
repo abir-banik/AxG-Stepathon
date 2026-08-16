@@ -53,7 +53,7 @@ export const EventConcludedPage: React.FC<EventConcludedPageProps> = ({ onAdminU
               The <strong>2nd Annual Global Stepathon</strong> has officially come to an end. Over four unforgettable weeks, colleagues across the globe came together to move, encourage one another, prioritize wellness, and champion <span className="font-semibold text-gray-800">Inclusion & Diversity + Care</span>.
             </p>
             <p className="text-gray-500 text-sm md:text-base leading-relaxed">
-              A huge thank you to all our racers, team captains, local office champions, and cheer squads who made every step count!
+              A huge thank you to all our racers, teams, offices, hype squads, and everyone who made every step count!
             </p>
           </div>
 
@@ -94,16 +94,16 @@ export const EventConcludedPage: React.FC<EventConcludedPageProps> = ({ onAdminU
         {/* Next Steps & Feedback Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
-          {/* Card 1: Wrap-up & Awards Announcement */}
+          {/* Card 1: Final Results Notice */}
           <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Award size={20} />
+              <Trophy size={20} />
             </div>
             <h4 className="font-extrabold text-base text-gray-900">
-              Awards & Recognition
+              Final Results & Standings
             </h4>
             <p className="text-gray-600 text-xs md:text-sm leading-relaxed">
-              Final leaderboards, team rankings, photo shoutouts, and participant certificates are being finalized with local office coordinators. Stay tuned for celebration emails!
+              Final leaderboards, team rankings, etc. are out! Reach out to the team if you have any questions!
             </p>
           </div>
 
