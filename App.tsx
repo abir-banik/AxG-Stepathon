@@ -16,6 +16,7 @@ import IndividualLeaderboardPage from './pages/IndividualLeaderboardPage';
 import WeeklyLeaderboardPage from './pages/WeeklyLeaderboardPage';
 import FaqPage from './components/FaqPage';
 import AnnouncementBannerView from './components/AnnouncementBannerView';
+import EventConcludedPage from './components/EventConcludedPage';
 import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle } from 'lucide-react';
 import { api } from './api';
 
@@ -34,6 +35,13 @@ const App: React.FC = () => {
   const [activeNotification, setActiveNotification] = useState<Waypoint | null>(null);
   const [mapViewMode, setMapViewMode] = useState<'global' | 'local'>('global');
   
+  const [isArchiveMode, setIsArchiveMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return search.includes('archive=true') || hash.includes('archive');
+  });
+
   // Navigation State (GitHub Pages compatible Hash Routing)
   const [activeTab, setActiveTab] = useState<'dashboard' | 'weekly' | 'teams' | 'individuals' | 'faq'>(() => {
     const hash = window.location.hash.toLowerCase();
@@ -64,8 +72,25 @@ const App: React.FC = () => {
   const totalSteps = users.reduce((acc, user) => acc + (Number(user.steps) || 0), 0);
   const progressPercentage = Math.min(totalSteps / TOTAL_GOAL_STEPS, 1);
 
-  // --- API INTEGRATION ---
+  // Listen to hash / search changes for Archive Mode
   useEffect(() => {
+    const handleUrlChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      setIsArchiveMode(search.includes('archive=true') || hash.includes('archive'));
+    };
+    window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+    };
+  }, []);
+
+  // --- API INTEGRATION (Only active in archive view to conserve resources) ---
+  useEffect(() => {
+    if (!isArchiveMode) return;
+
     const unsubUsers = api.subscribeToUsers((data, isOnline) => {
        setUsers(data);
        if (isOnline) {
@@ -90,7 +115,7 @@ const App: React.FC = () => {
       unsubTeams();
       unsubAnnouncement();
     };
-  }, []);
+  }, [isArchiveMode]);
 
   // Hash change routing for Multi-Page GitHub Pages support
   useEffect(() => {
@@ -232,9 +257,30 @@ const App: React.FC = () => {
 
   const closeNotification = () => setActiveNotification(null);
 
+  // If event has concluded and archive mode is not explicitly requested, display the Thank You landing page
+  if (!isArchiveMode) {
+    return <EventConcludedPage onAdminUnlock={() => setIsArchiveMode(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-gray-900 p-4 md:p-8 pb-32 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
+        {/* Archive Mode Banner */}
+        <div className="bg-amber-500 text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <span>📁 Historical Archive Mode (Stepathon 2026 Concluded)</span>
+          </div>
+          <button
+            onClick={() => {
+              window.location.hash = '';
+              window.location.search = '';
+              setIsArchiveMode(false);
+            }}
+            className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-xl transition-all"
+          >
+            Return to Thank You Page
+          </button>
+        </div>
         
         {/* Connection Error Toast */}
         {isOffline && (
