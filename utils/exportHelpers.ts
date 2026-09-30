@@ -1,5 +1,5 @@
 import { User, Team, AnnouncementBanner } from '../types';
-import { ACCENTURE_GLOBAL_OFFICES } from '../constants';
+import { ACCENTURE_GLOBAL_OFFICES, EVENT_WEEKS } from '../constants';
 
 /**
  * Escapes values for safe inclusion in CSV files.
@@ -51,10 +51,7 @@ export const generateMasterRosterCSV = (users: User[], teams: Team[]): string =>
     'Participant Name',
     'Team Name',
     'Office Location',
-    'Week 1 Steps (Jul 13-19)',
-    'Week 2 Steps (Jul 20-26)',
-    'Week 3 Steps (Jul 27-Aug 2)',
-    'Week 4 Steps (Aug 3-5)',
+    ...EVENT_WEEKS.map(w => `${w.label} Steps (${w.shortRange || `${w.startDate}-${w.endDate}`})`),
     'Total Cumulative Steps',
     'Total Distance (Miles)',
     'Total Distance (KM)',
@@ -68,10 +65,10 @@ export const generateMasterRosterCSV = (users: User[], teams: Team[]): string =>
     const team = teams.find(t => t.id === user.teamId || t.name === user.teamName);
     const officeName = getOfficeDisplayName(team?.location);
 
-    const w1 = user.weeklySteps?.['1'] ?? user.weeklySteps?.[1] ?? 0;
-    const w2 = user.weeklySteps?.['2'] ?? user.weeklySteps?.[2] ?? 0;
-    const w3 = user.weeklySteps?.['3'] ?? user.weeklySteps?.[3] ?? 0;
-    const w4 = user.weeklySteps?.['4'] ?? user.weeklySteps?.[4] ?? 0;
+    const weeklyStepCols = EVENT_WEEKS.map(w => {
+      const wkKey = String(w.weekNumber);
+      return user.weeklySteps?.[wkKey] ?? (user.weeklySteps as any)?.[w.weekNumber] ?? 0;
+    });
 
     const totalSteps = user.steps || 0;
     const totalMiles = (totalSteps / 2000).toFixed(2);
@@ -85,10 +82,7 @@ export const generateMasterRosterCSV = (users: User[], teams: Team[]): string =>
       escapeCSV(user.name),
       escapeCSV(user.teamName || team?.name || 'Independent / Unassigned'),
       escapeCSV(officeName),
-      w1,
-      w2,
-      w3,
-      w4,
+      ...weeklyStepCols,
       totalSteps,
       totalMiles,
       totalKm,

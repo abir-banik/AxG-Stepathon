@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { User, Waypoint, Team, AnnouncementBanner } from './types';
-import { ROUTE_WAYPOINTS, TOTAL_GOAL_STEPS } from './constants';
-import RaceMap from './components/RaceMap';
+import { User, Team, AnnouncementBanner } from './types';
+import { IS_EVENT_CONCLUDED, SITE_ACCESS_PASSWORD, SITE_AUTH_STORAGE_KEY } from './constants';
 import GlobalOfficeMap from './components/GlobalOfficeMap';
 import DashboardStats from './components/DashboardStats';
-import Leaderboard from './components/Leaderboard';
-import TimeBasedLeaderboard from './components/TimeBasedLeaderboard';
-import WeeklyAnalytics from './components/WeeklyAnalytics';
-import ReportGenerator from './components/ReportGenerator';
 import HostAdminPanel from './components/HostAdminPanel';
 import ParticipantStepLogger from './components/ParticipantStepLogger';
-import TeamLeaderboard from './components/TeamLeaderboard';
 import TeamLeaderboardPage from './pages/TeamLeaderboardPage';
 import IndividualLeaderboardPage from './pages/IndividualLeaderboardPage';
 import WeeklyLeaderboardPage from './pages/WeeklyLeaderboardPage';
 import FaqPage from './components/FaqPage';
 import AnnouncementBannerView from './components/AnnouncementBannerView';
 import EventConcludedPage from './components/EventConcludedPage';
-import { MapPin, Globe, Navigation, CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle } from 'lucide-react';
+import SitePasswordGate from './components/SitePasswordGate';
+import { CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle, Lock } from 'lucide-react';
 import { api } from './api';
 
 const App: React.FC = () => {
@@ -25,15 +20,24 @@ const App: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [announcement, setAnnouncement] = useState<AnnouncementBanner | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-
-  const [milestonesReached, setMilestonesReached] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('tea_o_milestones_reached');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+  const [isSiteUnlocked, setIsSiteUnlocked] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(SITE_AUTH_STORAGE_KEY) === SITE_ACCESS_PASSWORD;
   });
-  const [activeNotification, setActiveNotification] = useState<Waypoint | null>(null);
-  const [mapViewMode, setMapViewMode] = useState<'global' | 'local'>('global');
+
+  const handleSiteUnlock = (asAdmin: boolean = false) => {
+    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD);
+    setIsSiteUnlocked(true);
+    if (asAdmin) {
+      setIsAdmin(true);
+    }
+  };
+
+  const handleSiteLock = () => {
+    localStorage.removeItem(SITE_AUTH_STORAGE_KEY);
+    setIsSiteUnlocked(false);
+    setIsAdmin(false);
+  };
   
   const [isArchiveMode, setIsArchiveMode] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -70,7 +74,6 @@ const App: React.FC = () => {
 
   // Derived State
   const totalSteps = users.reduce((acc, user) => acc + (Number(user.steps) || 0), 0);
-  const progressPercentage = Math.min(totalSteps / TOTAL_GOAL_STEPS, 1);
 
   // Listen to hash / search changes for Archive Mode
   useEffect(() => {
@@ -87,9 +90,9 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // --- API INTEGRATION (Only active in archive view to conserve resources) ---
+  // --- API INTEGRATION ---
   useEffect(() => {
-    if (!isArchiveMode) return;
+    if (!isSiteUnlocked || (IS_EVENT_CONCLUDED && !isArchiveMode)) return;
 
     const unsubUsers = api.subscribeToUsers((data, isOnline) => {
        setUsers(data);
@@ -115,7 +118,7 @@ const App: React.FC = () => {
       unsubTeams();
       unsubAnnouncement();
     };
-  }, [isArchiveMode]);
+  }, [isSiteUnlocked, isArchiveMode]);
 
   // Hash change routing for Multi-Page GitHub Pages support
   useEffect(() => {
@@ -139,23 +142,6 @@ const App: React.FC = () => {
     else if (tab === 'faq') window.location.hash = '/faq';
     else window.location.hash = '/';
   };
-
-  // Milestone Logic
-  useEffect(() => {
-    const segmentSize = 1 / (ROUTE_WAYPOINTS.length - 1); 
-    
-    ROUTE_WAYPOINTS.forEach((wp, index) => {
-        const requiredProgress = index * segmentSize; 
-        
-        if (progressPercentage >= requiredProgress && index > 0 && !milestonesReached.includes(wp.name)) {
-             setMilestonesReached(prev => {
-               const updated = [...prev, wp.name];
-               localStorage.setItem('tea_o_milestones_reached', JSON.stringify(updated));
-               return updated;
-             });
-        }
-    });
-  }, [progressPercentage, milestonesReached]);
 
   // Handlers
   const handleRetryConnection = () => {
@@ -194,16 +180,13 @@ const App: React.FC = () => {
   const handleDeleteStep = async (userId: string, entryIndex: number) => {
      setUsers(prev => prev.map(u => {
         if (u.id === userId && u.stepHistory && u.stepHistory[entryIndex]) {
-            const removedAmount = u.stepHistory[entryIndex].amount || 0;
-            const removedWeek = u.stepHistory[entryIndex].week || 1;
-            
             const newHistory = u.stepHistory.filter((_, idx) => idx !== entryIndex);
-            const newTotal = Math.max(0, u.steps - removedAmount);
-            
-            const updatedWeekly = { ...u.weeklySteps };
-            if (updatedWeekly[removedWeek]) {
-                updatedWeekly[removedWeek] = Math.max(0, updatedWeekly[removedWeek] - removedAmount);
-            }
+            const newTotal = newHistory.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+            const updatedWeekly: Record<string, number> = {};
+            newHistory.forEach(e => {
+              const wk = String(e.week || 1);
+              updatedWeekly[wk] = (updatedWeekly[wk] || 0) + (Number(e.amount) || 0);
+            });
 
             return { ...u, steps: newTotal, weeklySteps: updatedWeekly, stepHistory: newHistory };
         }
@@ -213,8 +196,8 @@ const App: React.FC = () => {
      await api.removeStepEntry(userId, entryIndex);
   };
 
-  const handleAddTeam = async (name: string, color: string, iconId: string) => {
-    return await api.addTeam(name, color, iconId);
+  const handleAddTeam = async (name: string, color: string, iconId: string, location?: string, lat?: number, lng?: number) => {
+    return await api.addTeam(name, color, iconId, location, lat, lng);
   };
 
   const handleDeleteTeam = async (teamId: string) => {
@@ -242,7 +225,7 @@ const App: React.FC = () => {
         setIsResetting(true);
         try {
             await api.resetRace();
-            localStorage.removeItem('tea_o_milestones_reached');
+            localStorage.removeItem('stepathon_v3_milestones');
             setUsers([]);
             setTeams([]);
             setTimeout(() => {
@@ -255,10 +238,12 @@ const App: React.FC = () => {
     }
   };
 
-  const closeNotification = () => setActiveNotification(null);
+  if (!isSiteUnlocked) {
+    return <SitePasswordGate onUnlock={handleSiteUnlock} />;
+  }
 
   // If event has concluded and archive mode is not explicitly requested, display the Thank You landing page
-  if (!isArchiveMode) {
+  if (IS_EVENT_CONCLUDED && !isArchiveMode) {
     return <EventConcludedPage onAdminUnlock={() => setIsArchiveMode(true)} />;
   }
 
@@ -266,21 +251,23 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-[#f8f9fa] text-gray-900 p-4 md:p-8 pb-32 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Archive Mode Banner */}
-        <div className="bg-amber-500 text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-2">
-            <span>📁 Historical Archive Mode (Stepathon 2026 Concluded)</span>
+        {IS_EVENT_CONCLUDED && isArchiveMode && (
+          <div className="bg-amber-500 text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-2">
+              <span>📁 Historical Archive Mode (Stepathon 2026 Concluded)</span>
+            </div>
+            <button
+              onClick={() => {
+                window.location.hash = '';
+                window.location.search = '';
+                setIsArchiveMode(false);
+              }}
+              className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-xl transition-all"
+            >
+              Return to Thank You Page
+            </button>
           </div>
-          <button
-            onClick={() => {
-              window.location.hash = '';
-              window.location.search = '';
-              setIsArchiveMode(false);
-            }}
-            className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-xl transition-all"
-          >
-            Return to Thank You Page
-          </button>
-        </div>
+        )}
         
         {/* Connection Error Toast */}
         {isOffline && (
@@ -366,6 +353,15 @@ const App: React.FC = () => {
                 <span className="text-sm font-bold text-blue-500">CONNECTING...</span>
               </div>
             )}
+
+            {/* Lock Site Button */}
+            <button
+              onClick={handleSiteLock}
+              title="Lock site"
+              className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors border border-gray-200 cursor-pointer"
+            >
+              <Lock size={16} />
+            </button>
           </div>
         </header>
 
@@ -479,6 +475,7 @@ const App: React.FC = () => {
               teams={teams}
               onAddSteps={handleAddSteps}
               onDeleteStep={handleDeleteStep}
+              distanceUnit={distanceUnit}
             />
           </div>
         )}
@@ -502,9 +499,6 @@ const App: React.FC = () => {
         {activeTab === 'faq' && (
           <FaqPage />
         )}
-
-        {/* Footer Actions */}
-        <ReportGenerator users={users} totalSteps={totalSteps} />
 
         <footer className="text-center text-gray-400 text-sm pt-12 pb-8 space-y-3">
            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-500">

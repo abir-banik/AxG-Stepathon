@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Team, User, AnnouncementBanner } from '../types';
-import { ACCENTURE_GLOBAL_OFFICES } from '../constants';
+import {
+  ACCENTURE_GLOBAL_OFFICES,
+  EVENT_WEEKS,
+  HOST_ADMIN_PASSCODE,
+  MAX_HOST_OVERRIDE_STEPS_PER_ENTRY,
+  computeWeekFromDate
+} from '../constants';
 import { 
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
   Sparkles, Check, X, Lock, Unlock, Layers, MapPin,
@@ -76,14 +82,6 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
     week: number;
     steps: string;
   }
-
-  const computeWeekFromDate = (dateStr: string): number => {
-    if (!dateStr) return 1;
-    if (dateStr >= '2026-08-03') return 4;
-    if (dateStr >= '2026-07-27') return 3;
-    if (dateStr >= '2026-07-20') return 2;
-    return 1;
-  };
 
   const createInitialOverrideRow = (): OverrideEntryRow => {
     const today = new Date();
@@ -212,7 +210,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === 'AxGstepathon2026') {
+    if (passcode.trim() === HOST_ADMIN_PASSCODE) {
       setIsAdmin(true);
       setPassError(false);
       setPasscode('');
@@ -820,10 +818,9 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                         onChange={(e) => handleOverrideRowChange(rowIdx, 'week', Number(e.target.value))}
                         className="w-full bg-gray-50/70 border border-gray-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500 outline-none font-medium shadow-2xs"
                       >
-                        <option value={1}>Week 1</option>
-                        <option value={2}>Week 2</option>
-                        <option value={3}>Week 3</option>
-                        <option value={4}>Week 4</option>
+                        {EVENT_WEEKS.map(w => (
+                          <option key={w.weekNumber} value={w.weekNumber}>{w.label}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -839,7 +836,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                         onChange={(e) => handleOverrideRowChange(rowIdx, 'steps', e.target.value)}
                         className="w-full bg-gray-50/70 border border-gray-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500 outline-none font-medium shadow-2xs"
                         min="1"
-                        max="200000"
+                        max={MAX_HOST_OVERRIDE_STEPS_PER_ENTRY}
                         required
                       />
                     </div>

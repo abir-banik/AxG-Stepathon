@@ -1,10 +1,18 @@
-import { Waypoint } from './types';
+export const IS_EVENT_CONCLUDED = false; // Toggle true after event ends to show Thank You landing page
+export const SITE_ACCESS_PASSWORD = 'STEPATHON2026'; // Shared participant password to access the site
+export const HOST_ADMIN_PASSCODE = 'AxGstepathon2026'; // Host admin portal passcode
+export const SITE_AUTH_STORAGE_KEY = 'stepathon_v3_site_auth';
+
+export const EVENT_START_DATE = '2026-07-13';
+export const EVENT_END_DATE = '2026-08-05';
 
 export const GLOBAL_STEP_GOAL = 35000000; // 35,000,000 Global Step Target
 export const TOTAL_GOAL_STEPS = GLOBAL_STEP_GOAL;
 export const STEPS_PER_MILE = 2000;
 export const TOTAL_GOAL_MILES = GLOBAL_STEP_GOAL / STEPS_PER_MILE;
 export const MAX_USERS = 200;
+export const MAX_PARTICIPANT_STEPS_PER_ENTRY = 30000;
+export const MAX_HOST_OVERRIDE_STEPS_PER_ENTRY = 200000;
 export const TOTAL_WEEKS = 4; // 4-Week Challenge (July 13th - Aug 5th)
 
 export interface WeekDefinition {
@@ -12,14 +20,69 @@ export interface WeekDefinition {
   label: string;
   startDate: string;
   endDate: string;
+  shortRange: string;
+  startIso: string;
+  endIso: string;
+  deadlineUtc: string;
 }
 
 export const EVENT_WEEKS: WeekDefinition[] = [
-  { weekNumber: 1, label: "Week 1", startDate: "July 13", endDate: "July 19" },
-  { weekNumber: 2, label: "Week 2", startDate: "July 20", endDate: "July 26" },
-  { weekNumber: 3, label: "Week 3", startDate: "July 27", endDate: "August 2" },
-  { weekNumber: 4, label: "Week 4", startDate: "August 3", endDate: "August 5" }
+  {
+    weekNumber: 1,
+    label: "Week 1",
+    startDate: "July 13",
+    endDate: "July 19",
+    shortRange: "Jul 13-19",
+    startIso: "2026-07-13",
+    endIso: "2026-07-19",
+    deadlineUtc: "2026-07-21T00:00:00.000Z" // Monday July 20 @ 8:00 PM ET
+  },
+  {
+    weekNumber: 2,
+    label: "Week 2",
+    startDate: "July 20",
+    endDate: "July 26",
+    shortRange: "Jul 20-26",
+    startIso: "2026-07-20",
+    endIso: "2026-07-26",
+    deadlineUtc: "2026-07-28T00:00:00.000Z" // Monday July 27 @ 8:00 PM ET
+  },
+  {
+    weekNumber: 3,
+    label: "Week 3",
+    startDate: "July 27",
+    endDate: "August 2",
+    shortRange: "Jul 27-Aug 2",
+    startIso: "2026-07-27",
+    endIso: "2026-08-02",
+    deadlineUtc: "2026-08-04T00:00:00.000Z" // Monday August 3 @ 8:00 PM ET
+  },
+  {
+    weekNumber: 4,
+    label: "Week 4",
+    startDate: "August 3",
+    endDate: "August 5",
+    shortRange: "Aug 3-5",
+    startIso: "2026-08-03",
+    endIso: "2026-08-05",
+    deadlineUtc: "2026-08-06T14:00:00.000Z" // Thursday August 6 @ 9:00 AM EST
+  }
 ];
+
+export const WEEKLY_DEADLINES: Record<number, string> = Object.fromEntries(
+  EVENT_WEEKS.map(w => [w.weekNumber, w.deadlineUtc])
+);
+
+export const computeWeekFromDate = (dateStr: string): number => {
+  if (!dateStr) return 1;
+  const cleanDate = dateStr.substring(0, 10);
+  for (let i = EVENT_WEEKS.length - 1; i >= 0; i--) {
+    if (cleanDate >= EVENT_WEEKS[i].startIso) {
+      return EVENT_WEEKS[i].weekNumber;
+    }
+  }
+  return 1;
+};
 
 export interface AccentureOffice {
   id: string;
@@ -47,64 +110,6 @@ export const ACCENTURE_GLOBAL_OFFICES: AccentureOffice[] = [
   { id: 'toronto', city: 'Toronto', country: 'Canada', displayName: 'Toronto, Canada', lat: 43.6532, lng: -79.3832 },
   { id: 'san_francisco', city: 'San Francisco, CA', country: 'United States', displayName: 'San Francisco, CA (US)', lat: 37.7749, lng: -122.4194 },
   { id: 'new_york', city: 'New York, NY', country: 'United States', displayName: 'New York, NY (US)', lat: 40.7128, lng: -74.0060 }
-];
-
-// Route: Seattle -> SF -> LA -> Vegas -> Moab -> Denver -> Chicago -> Philly -> NYC
-export const ROUTE_WAYPOINTS: Waypoint[] = [
-  {
-    name: "Seattle, WA",
-    lat: 47.6062,
-    lng: -122.3321,
-    fact: "Start Line! Did you know Seattle has a troll living under the Aurora Bridge?"
-  },
-  {
-    name: "San Francisco, CA",
-    lat: 37.7749,
-    lng: -122.4194,
-    fact: "The Golden Gate Bridge's color is officially called 'International Orange'."
-  },
-  {
-    name: "Los Angeles, CA",
-    lat: 34.0522,
-    lng: -118.2437,
-    fact: "LA's full name is 'El Pueblo de Nuestra Señora la Reina de los Ángeles del Río Porciúncula'."
-  },
-  {
-    name: "Las Vegas, NV",
-    lat: 36.1699,
-    lng: -115.1398,
-    fact: "The Luxor Las Vegas Sky Beam is the brightest light beam in the world."
-  },
-  {
-    name: "Moab, UT",
-    lat: 38.5733,
-    lng: -109.5498,
-    fact: "Moab is home to the stunning arches of Arches National Park."
-  },
-  {
-    name: "Denver, CO",
-    lat: 39.7392,
-    lng: -104.9903,
-    fact: "The 13th step of the State Capitol building is exactly one mile above sea level."
-  },
-  {
-    name: "Chicago, IL",
-    lat: 41.8781,
-    lng: -87.6298,
-    fact: "The Chicago River is the only river in the world that flows backwards."
-  },
-  {
-    name: "Philadelphia, PA",
-    lat: 39.9526,
-    lng: -75.1652,
-    fact: "Philadelphia is home to America's first zoo and first hospital."
-  },
-  {
-    name: "New York City, NY",
-    lat: 40.7128,
-    lng: -74.0060,
-    fact: "Finish Line! NYC has more than 800 languages spoken, making it the most linguistically diverse city."
-  }
 ];
 
 export const INITIAL_USERS = [];

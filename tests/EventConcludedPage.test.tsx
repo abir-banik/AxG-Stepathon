@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import EventConcludedPage from '../components/EventConcludedPage';
 
 describe('EventConcludedPage Component', () => {
@@ -38,9 +38,14 @@ describe('EventConcludedPage Component', () => {
     expect(feedbackLink).toHaveAttribute('target', '_blank');
   });
 
-  it('renders footer message anticipating the 3rd annual stepathon', () => {
-    render(<EventConcludedPage />);
+  it('renders footer message anticipating the 3rd annual stepathon and supports onAdminUnlock', () => {
+    const onUnlock = vi.fn();
+    render(<EventConcludedPage onAdminUnlock={onUnlock} />);
 
     expect(screen.getByText(/See you at the 3rd Annual Global Stepathon!/i)).toBeInTheDocument();
+    const archiveButton = screen.getByRole('button', { name: /View Archive Leaderboards/i });
+    fireEvent.click(archiveButton);
+    expect(onUnlock).toHaveBeenCalledTimes(1);
   });
 });
+

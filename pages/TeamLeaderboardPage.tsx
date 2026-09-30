@@ -42,6 +42,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
 
   const totalEventSteps = users.reduce((acc, u) => acc + (u.steps || 0), 0);
   const totalEventMiles = totalEventSteps / 2000;
+  const totalEventDist = isKm ? totalEventMiles * 1.60934 : totalEventMiles;
 
   const getRankBadgeClass = (index: number) => {
     switch (index) {
@@ -65,7 +66,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Team Standings & Leaderboard</h2>
             <p className="text-blue-100 text-sm max-w-xl">
-              Track overall team miles, racer averages, and team roster progress towards the 4,195-mile Seattle to NYC goal.
+              Track overall team distance, racer averages, and team roster progress towards the 35,000,000 global step goal.
             </p>
           </div>
 
@@ -76,8 +77,10 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
             </div>
             <div className="border-r border-white/20" />
             <div>
-              <div className="text-2xl font-extrabold">{totalEventMiles.toFixed(1)}</div>
-              <div className="text-[11px] text-blue-200 uppercase font-bold tracking-wider">Total Team Miles</div>
+              <div className="text-2xl font-extrabold">{totalEventDist.toFixed(1)}</div>
+              <div className="text-[11px] text-blue-200 uppercase font-bold tracking-wider">
+                {isKm ? 'Total Team KM' : 'Total Team Miles'}
+              </div>
             </div>
           </div>
         </div>
@@ -126,7 +129,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
                       <p className="text-xs text-gray-500 font-medium flex items-center gap-2 mt-1">
                         <span><Users size={12} className="inline mr-1" />{team.members.length} Racers</span>
                         <span>•</span>
-                        <span>Avg: <strong className="text-gray-700">{team.avgSteps.toLocaleString()} steps ({team.avgMiles.toFixed(1)} mi)</strong> / racer</span>
+                        <span>Avg: <strong className="text-gray-700">{team.avgSteps.toLocaleString()} steps ({team.avgDist.toFixed(1)} {isKm ? 'km' : 'mi'})</strong> / racer</span>
                       </p>
                     </div>
                   </div>
@@ -186,6 +189,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
                       {team.members.map((member, mIndex) => {
                         const memberMiles = (member.steps || 0) / 2000;
+                        const memberDist = isKm ? memberMiles * 1.60934 : memberMiles;
                         const percentOfTeam = team.totalSteps > 0 ? ((member.steps || 0) / team.totalSteps) * 100 : 0;
 
                         return (
@@ -199,7 +203,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
                             </div>
                             <div className="text-right">
                               <div className="font-extrabold text-xs text-gray-800">{(member.steps || 0).toLocaleString()}</div>
-                              <div className="text-[10px] font-bold text-blue-600">{memberMiles.toFixed(1)} mi</div>
+                              <div className="text-[10px] font-bold text-blue-600">{memberDist.toFixed(1)} {isKm ? 'km' : 'mi'}</div>
                             </div>
                           </div>
                         );

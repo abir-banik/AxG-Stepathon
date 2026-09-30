@@ -1,4 +1,5 @@
 import { User, StepEntry, Team, AnnouncementBanner } from './types';
+import { EVENT_END_DATE, MAX_PARTICIPANT_STEPS_PER_ENTRY, MAX_HOST_OVERRIDE_STEPS_PER_ENTRY, computeWeekFromDate } from './constants';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, addDoc, 
@@ -24,9 +25,9 @@ const db = getFirestore(app);
 const RACERS_COLLECTION = 'racers';
 const TEAMS_COLLECTION = 'teams';
 const ANNOUNCEMENT_DOC_ID = '_announcement';
-const LOCAL_STORAGE_KEY = 'tea_o_race_data';
-const LOCAL_TEAMS_KEY = 'tea_o_teams_data';
-const LOCAL_ANNOUNCEMENT_KEY = 'tea_o_announcement_data';
+const LOCAL_STORAGE_KEY = 'stepathon_v3_users';
+const LOCAL_TEAMS_KEY = 'stepathon_v3_teams';
+const LOCAL_ANNOUNCEMENT_KEY = 'stepathon_v3_announcement';
 
 // Internal listener queues
 const listeners: ((users: User[], isOnline: boolean) => void)[] = [];
@@ -71,10 +72,10 @@ const saveLocalTeams = (teams: Team[]) => {
   teamListeners.forEach(cb => cb(teams));
 };
 
-const DEFAULT_ANNOUNCEMENT: AnnouncementBanner = {
-  message: "📢 Final Step Submission Deadline: Please submit all your final steps by tonight at 12:00 AM PST / 3:00 AM EST! Please double-check your step counts to ensure all your entries are recorded!",
-  type: "warning",
-  active: true,
+export const DEFAULT_ANNOUNCEMENT: AnnouncementBanner = {
+  message: "",
+  type: "info",
+  active: false,
   updatedAt: new Date().toISOString()
 };
 
@@ -112,79 +113,12 @@ const startAnnouncementSnapshotListener = () => {
   });
 };
 
-const GOOGLE_COLORS = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#A142F4', '#FF6D00', '#00BFA5', '#F4511E'];
-
 const startTeamsSnapshotListener = () => {
   if (unsubscribeTeamsSnapshot) unsubscribeTeamsSnapshot();
 
   const q = collection(db, TEAMS_COLLECTION);
-  unsubscribeTeamsSnapshot = onSnapshot(q, async (snapshot) => {
+  unsubscribeTeamsSnapshot = onSnapshot(q, (snapshot) => {
     const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Team);
-
-    // Auto-heal: If Cloud Firestore teams collection is empty, rebuild and push all teams from racers data!
-    if (teams.length === 0) {
-      try {
-        let teamsToSync: { id: string; name: string; color: string; iconId: string; location: string }[] = [];
-        const localTeams = getLocalTeams();
-
-        if (localTeams.length > 0) {
-          teamsToSync = localTeams.map(t => ({
-            id: t.id || `team-${t.name.toLowerCase().replace(/\s+/g, '-')}`,
-            name: t.name,
-            color: t.color || '#4285F4',
-            iconId: t.iconId || 'trophy',
-            location: t.location || 'na'
-          }));
-        } else {
-          // Extract team names from Cloud Firestore racers collection
-          const racersSnap = await getDocs(collection(db, RACERS_COLLECTION));
-          const teamMap = new Map<string, { id: string; name: string }>();
-          
-          racersSnap.docs.forEach(docSnap => {
-            const data = docSnap.data();
-            const tn = data.teamName?.trim();
-            if (tn && tn !== 'N/A' && tn !== 'Independent') {
-              const tid = data.teamId || `team-${tn.toLowerCase().replace(/\s+/g, '-')}`;
-              if (!teamMap.has(tn)) {
-                teamMap.set(tn, { id: tid, name: tn });
-              }
-            }
-          });
-
-          let colorIdx = 0;
-          teamMap.forEach((val) => {
-            teamsToSync.push({
-              id: val.id,
-              name: val.name,
-              color: GOOGLE_COLORS[colorIdx % GOOGLE_COLORS.length],
-              iconId: 'trophy',
-              location: 'na'
-            });
-            colorIdx++;
-          });
-        }
-
-        if (teamsToSync.length > 0) {
-          const batch = writeBatch(db);
-          teamsToSync.forEach((t) => {
-            const teamRef = doc(db, TEAMS_COLLECTION, t.id);
-            batch.set(teamRef, {
-              name: t.name,
-              color: t.color,
-              iconId: t.iconId,
-              location: t.location,
-              createdAt: serverTimestamp()
-            }, { merge: true });
-          });
-          await batch.commit();
-          console.log(`Auto-reconstructed and synced ${teamsToSync.length} teams to Cloud Firestore!`);
-          return;
-        }
-      } catch (e) {
-        console.warn("Failed to auto-reconstruct teams in Cloud Firestore", e);
-      }
-    }
-
     localStorage.setItem(LOCAL_TEAMS_KEY, JSON.stringify(teams));
     teamListeners.forEach(cb => cb(teams));
   }, (error) => {
@@ -394,9 +328,9 @@ export const api = {
     }
   },
 
-  // Add steps to an existing user for a specific week (Max 30,000 steps per entry for participants, host override allows up to 200,000)
+  // Add steps to an existing user for a specific week
   async addSteps(userId: string, steps: number, week: number, customDate?: string, bypassMaxLimit: boolean = false): Promise<User | null> {
-    const MAX_STEPS_PER_ENTRY = bypassMaxLimit ? 200000 : 30000;
+    const MAX_STEPS_PER_ENTRY = bypassMaxLimit ? MAX_HOST_OVERRIDE_STEPS_PER_ENTRY : MAX_PARTICIPANT_STEPS_PER_ENTRY;
     const validSteps = Math.min(Math.max(0, Math.floor(Number(steps) || 0)), MAX_STEPS_PER_ENTRY);
     const validWeek = Math.min(Math.max(1, Math.floor(Number(week) || 1)), 12);
 
@@ -406,8 +340,8 @@ export const api = {
     const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const entryDate = customDate ? customDate.substring(0, 10) : localToday;
 
-    // Disallow step entries for dates after August 5th, 2026 unless admin bypass is active
-    if (!bypassMaxLimit && entryDate > '2026-08-05') {
+    // Disallow step entries for dates after EVENT_END_DATE unless admin bypass is active
+    if (!bypassMaxLimit && entryDate > EVENT_END_DATE) {
       return null;
     }
 
@@ -603,24 +537,42 @@ export const api = {
       const querySnapshot = await getDocs(collection(db, RACERS_COLLECTION));
       const batch = writeBatch(db);
 
-      querySnapshot.docs.forEach((docSnapshot) => {
-        const userData = docSnapshot.data() as User;
-        const history = Array.isArray(userData.stepHistory) ? userData.stepHistory : [];
-
-        let needsUpdate = false;
-        const normalizedHistory: StepEntry[] = history.map((entry) => {
+      const deduplicateHistory = (history: StepEntry[]): { deduped: StepEntry[]; changed: boolean } => {
+        let changed = false;
+        const normalized: StepEntry[] = history.map((entry) => {
           const rawDate = entry.date || localToday;
           const cleanDate = rawDate.length > 10 ? rawDate.substring(0, 10) : rawDate;
           const cleanAmount = Math.max(0, Math.floor(Number(entry.amount) || 0));
-          if (cleanDate !== rawDate || cleanAmount !== entry.amount) {
-            needsUpdate = true;
+          const cleanWeek = entry.week || computeWeekFromDate(cleanDate);
+          if (cleanDate !== rawDate || cleanAmount !== entry.amount || cleanWeek !== entry.week) {
+            changed = true;
           }
           return {
             ...entry,
             date: cleanDate,
-            amount: cleanAmount
+            amount: cleanAmount,
+            week: cleanWeek
           };
         });
+
+        const byDate = new Map<string, StepEntry>();
+        normalized.forEach((entry) => {
+          if (byDate.has(entry.date)) {
+            changed = true;
+          }
+          byDate.set(entry.date, entry);
+        });
+
+        return { deduped: Array.from(byDate.values()), changed };
+      };
+
+      querySnapshot.docs.forEach((docSnapshot) => {
+        if (docSnapshot.id === '_announcement') return;
+        const userData = docSnapshot.data() as User;
+        const history = Array.isArray(userData.stepHistory) ? userData.stepHistory : [];
+
+        const { deduped: normalizedHistory, changed } = deduplicateHistory(history);
+        let needsUpdate = changed;
 
         const recomputedTotal = normalizedHistory.reduce((sum, e) => sum + e.amount, 0);
         const recomputedWeekly: Record<string, number> = {};
@@ -653,11 +605,7 @@ export const api = {
       let localHealed = false;
       localUsers.forEach(u => {
         const history = Array.isArray(u.stepHistory) ? u.stepHistory : [];
-        const normHist = history.map(e => ({
-          ...e,
-          date: (e.date || localToday).substring(0, 10),
-          amount: Math.max(0, Math.floor(Number(e.amount) || 0))
-        }));
+        const { deduped: normHist } = deduplicateHistory(history);
         const total = normHist.reduce((sum, e) => sum + e.amount, 0);
         const weekly: Record<string, number> = {};
         normHist.forEach(e => {
@@ -679,11 +627,17 @@ export const api = {
       const localUsers = getLocalUsers();
       localUsers.forEach(u => {
         const history = Array.isArray(u.stepHistory) ? u.stepHistory : [];
-        const normHist = history.map(e => ({
-          ...e,
-          date: (e.date || localToday).substring(0, 10),
-          amount: Math.max(0, Math.floor(Number(e.amount) || 0))
-        }));
+        const byDate = new Map<string, StepEntry>();
+        history.forEach(e => {
+          const cleanDate = (e.date || localToday).substring(0, 10);
+          byDate.set(cleanDate, {
+            ...e,
+            date: cleanDate,
+            amount: Math.max(0, Math.floor(Number(e.amount) || 0)),
+            week: e.week || computeWeekFromDate(cleanDate)
+          });
+        });
+        const normHist = Array.from(byDate.values());
         const total = normHist.reduce((sum, e) => sum + e.amount, 0);
         const weekly: Record<string, number> = {};
         normHist.forEach(e => {

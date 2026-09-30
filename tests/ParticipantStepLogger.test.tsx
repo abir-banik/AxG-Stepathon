@@ -273,4 +273,21 @@ describe('ParticipantStepLogger Component', () => {
     cells = screen.getAllByRole('cell').map(c => c.textContent);
     expect(cells[0]).toContain('Aug 3');
   });
+
+  it('displays kilometers when distanceUnit is km', () => {
+    render(
+      <ParticipantStepLogger
+        users={mockUsers}
+        teams={mockTeams}
+        distanceUnit="km"
+        onAddSteps={vi.fn()}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Alice Smith'));
+    expect(screen.getByText('Current Kilometers:')).toBeInTheDocument();
+    expect(screen.getByText('8.0 km')).toBeInTheDocument();
+  });
 });
+

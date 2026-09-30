@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Team } from '../types';
-import { EVENT_WEEKS, WeekDefinition } from '../constants';
+import { EVENT_WEEKS, WEEKLY_DEADLINES } from '../constants';
 import { Calendar, Trophy, Award, Crown, Users, Clock } from 'lucide-react';
 
 interface WeeklyLeaderboardPageProps {
@@ -8,13 +8,6 @@ interface WeeklyLeaderboardPageProps {
   teams: Team[];
   distanceUnit?: 'mi' | 'km';
 }
-
-const WEEKLY_DEADLINES: Record<number, string> = {
-  1: '2026-07-21T00:00:00.000Z', // Monday July 20 @ 8:00 PM ET
-  2: '2026-07-28T00:00:00.000Z', // Monday July 27 @ 8:00 PM ET
-  3: '2026-08-04T00:00:00.000Z', // Monday August 3 @ 8:00 PM ET
-  4: '2026-08-06T14:00:00.000Z', // Thursday August 6 @ 9:00 AM EST (Host grace period cutoff; public banners display Aug 5 @ 8:00 PM EST)
-};
 
 const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
   const history = user.stepHistory;
@@ -189,7 +182,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
                 <Award size={24} />
               </div>
               <div>
-                <h3 className="text-[#xl] font-bold text-gray-900 flex items-center gap-1.5">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-1.5">
                   Stride Force 🏅🤝 <span className="text-sm font-normal text-gray-500">(Top 3 Teams)</span>
                 </h3>
                 <p className="text-xs text-gray-500">{currentWeekInfo.label} ({currentWeekInfo.startDate} - {currentWeekInfo.endDate})</p>

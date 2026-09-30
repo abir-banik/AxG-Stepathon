@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { User, Team } from '../types';
-import { TOTAL_WEEKS } from '../constants';
+import {
+  TOTAL_WEEKS,
+  EVENT_START_DATE,
+  EVENT_END_DATE,
+  MAX_PARTICIPANT_STEPS_PER_ENTRY,
+  computeWeekFromDate
+} from '../constants';
 import { 
   Plus, Check, X, Trash2, Calendar, History, 
   Users, Award, Search, Sparkles, Footprints, ChevronRight
@@ -11,29 +17,21 @@ interface ParticipantStepLoggerProps {
   teams: Team[];
   onAddSteps: (userId: string, steps: number, week: number, customDate?: string) => Promise<void>;
   onDeleteStep: (userId: string, entryIndex: number) => Promise<void>;
+  distanceUnit?: 'mi' | 'km';
 }
 
 const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   users,
   teams,
   onAddSteps,
-  onDeleteStep
+  onDeleteStep,
+  distanceUnit = 'mi'
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>('ALL');
   const [sortOrder, setSortOrder] = useState<'name-asc' | 'name-desc'>('name-asc');
   const [historySortOrder, setHistorySortOrder] = useState<'date-desc' | 'date-asc' | 'updated-desc'>('date-desc');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const EVENT_START_DATE = '2026-07-13';
-  const EVENT_END_DATE = '2026-08-05';
-
-  const computeWeekFromDate = (dateStr: string): number => {
-    if (!dateStr || dateStr <= '2026-07-19') return 1;
-    if (dateStr <= '2026-07-26') return 2;
-    if (dateStr <= '2026-08-02') return 3;
-    return 4;
-  };
 
   // Form States
   const [stepInput, setStepInput] = useState('');
@@ -145,7 +143,12 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
             </div>
 
             <div className="bg-white px-4 py-2 rounded-xl text-xs font-bold text-gray-600 border border-blue-100 shadow-sm">
-              Current Miles: <span className="text-blue-600 text-sm font-extrabold">{((selectedUser.steps || 0) / 2000).toFixed(1)} mi</span>
+              {distanceUnit === 'km' ? 'Current Kilometers:' : 'Current Miles:'}{' '}
+              <span className="text-blue-600 text-sm font-extrabold">
+                {distanceUnit === 'km'
+                  ? (((selectedUser.steps || 0) / 2000) * 1.60934).toFixed(1) + ' km'
+                  : ((selectedUser.steps || 0) / 2000).toFixed(1) + ' mi'}
+              </span>
             </div>
           </div>
 
@@ -192,7 +195,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                   className="w-full bg-white border border-gray-200 text-lg rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
                   required
                   min="1"
-                  max="30000"
+                  max={MAX_PARTICIPANT_STEPS_PER_ENTRY}
                 />
               </div>
 
