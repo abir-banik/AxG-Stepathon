@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Team, User, AnnouncementBanner } from '../types';
 import {
-  ACCENTURE_GLOBAL_OFFICES,
+  GLOBAL_OFFICES,
   EVENT_WEEKS,
   HOST_ADMIN_PASSCODE,
+  MAX_TEAM_MEMBERS,
   MAX_HOST_OVERRIDE_STEPS_PER_ENTRY,
   computeWeekFromDate
 } from '../constants';
+import { formatParticipantName } from '../utils/nameFormatter';
 import { 
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
   Sparkles, Check, X, Lock, Unlock, Layers, MapPin,
@@ -22,10 +24,10 @@ import {
 } from '../utils/exportHelpers';
 
 const TEAM_COLORS = [
-  { name: 'Google Blue', hex: '#4285F4', bg: 'bg-[#4285F4]' },
-  { name: 'Google Red', hex: '#EA4335', bg: 'bg-[#EA4335]' },
-  { name: 'Google Yellow', hex: '#FBBC05', bg: 'bg-[#FBBC05]' },
-  { name: 'Google Green', hex: '#34A853', bg: 'bg-[#34A853]' },
+  { name: 'Blue', hex: '#4285F4', bg: 'bg-[#4285F4]' },
+  { name: 'Red', hex: '#EA4335', bg: 'bg-[#EA4335]' },
+  { name: 'Yellow', hex: '#FBBC05', bg: 'bg-[#FBBC05]' },
+  { name: 'Green', hex: '#34A853', bg: 'bg-[#34A853]' },
   { name: 'Purple', hex: '#8E24AA', bg: 'bg-[#8E24AA]' },
   { name: 'Orange', hex: '#F4511E', bg: 'bg-[#F4511E]' },
   { name: 'Teal', hex: '#00897B', bg: 'bg-[#00897B]' },
@@ -188,8 +190,8 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
     id: `form-team-${Math.random()}`,
     name: '',
     color: TEAM_COLORS[0].hex,
-    officeId: ACCENTURE_GLOBAL_OFFICES[0].id,
-    memberInputs: ['', '', '', '', ''] // Default 5 rows
+    officeId: GLOBAL_OFFICES[0].id,
+    memberInputs: ['', '', '', '', ''] // Default 5 rows (up to MAX_TEAM_MEMBERS = 8)
   });
 
   const [teamsToCreate, setTeamsToCreate] = useState<TeamCreationState[]>([
@@ -203,7 +205,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
 
   const handleQuickAddMember = async (team: Team) => {
     if (!newMemberName.trim()) return;
-    await onAddParticipant(newMemberName.trim(), team.id, team.name, 'smile');
+    await onAddParticipant(formatParticipantName(newMemberName.trim()), team.id, team.name, 'smile');
     setNewMemberName('');
     setAddingMemberTeamId(null);
   };
@@ -243,6 +245,10 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   const handleAddMemberRow = (teamIndex: number) => {
     setTeamsToCreate(prev => {
       const updated = [...prev];
+      if (updated[teamIndex].memberInputs.length >= MAX_TEAM_MEMBERS) {
+        alert(`Each team can have up to ${MAX_TEAM_MEMBERS} members.`);
+        return prev;
+      }
       updated[teamIndex] = {
         ...updated[teamIndex],
         memberInputs: [...updated[teamIndex].memberInputs, '']
@@ -284,7 +290,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
     setIsSubmitting(true);
     try {
       for (const teamForm of validTeams) {
-        const office = ACCENTURE_GLOBAL_OFFICES.find(o => o.id === teamForm.officeId) || ACCENTURE_GLOBAL_OFFICES[0];
+        const office = GLOBAL_OFFICES.find(o => o.id === teamForm.officeId) || GLOBAL_OFFICES[0];
         
         // 1. Create Team with Office Location Coordinates
         const createdTeam = await onAddTeam(
@@ -298,8 +304,8 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
         const teamId = createdTeam?.id || `team-${Date.now()}`;
         const actualTeamName = createdTeam?.name || teamForm.name.trim();
 
-        // 2. Add all non-empty members to the created team at once
-        const validMembers = teamForm.memberInputs.map(m => m.trim()).filter(m => m.length > 0);
+        // 2. Add all non-empty members to the created team at once (formatted to First L.)
+        const validMembers = teamForm.memberInputs.map(m => formatParticipantName(m)).filter(m => m.length > 0);
         for (const memberName of validMembers) {
           await onAddParticipant(memberName, teamId, actualTeamName, 'smile');
         }
@@ -393,7 +399,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
             <Download size={18} className="text-emerald-700" /> Competition Data Export & Reports
           </div>
           <span className="text-xs text-emerald-800 font-medium">
-            1-Click CSVs for Excel / Google Sheets & JSON Backup
+            1-Click CSVs for Excel / Spreadsheets & JSON Backup
           </span>
         </div>
 
@@ -409,7 +415,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                 <FileSpreadsheet size={16} className="text-emerald-600 flex-shrink-0" /> Master Roster (CSV)
               </div>
               <p className="text-[11px] text-gray-500 mt-1">
-                Individual rankings, Week 1–4 step totals, miles, km, and active days logged.
+                Individual rankings, Week 1–5 step totals, miles, km, and active days logged.
               </p>
             </div>
             <button
@@ -717,7 +723,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                           type="button"
                           onClick={() => {
                             setSelectedOverrideUser(u);
-                            setParticipantSearchQuery(u.name);
+                            setParticipantSearchQuery(formatParticipantName(u.name));
                             setIsSearchDropdownOpen(false);
                           }}
                           className="w-full text-left p-3 hover:bg-purple-50/80 transition-colors flex items-center justify-between group"
@@ -727,7 +733,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                               {u.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="text-xs font-bold text-gray-900 group-hover:text-purple-700">{u.name}</div>
+                              <div className="text-xs font-bold text-gray-900 group-hover:text-purple-700">{formatParticipantName(u.name)}</div>
                               <div className="text-[10px] text-gray-500 font-medium">{u.teamName || 'Unassigned Team'}</div>
                             </div>
                           </div>
@@ -749,7 +755,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                   </div>
                   <div>
                     <div className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
-                      <span>{selectedOverrideUser.name}</span>
+                      <span>{formatParticipantName(selectedOverrideUser.name)}</span>
                       <UserCheck size={14} className="text-emerald-600" />
                     </div>
                     <div className="text-[11px] text-gray-500 font-medium">
@@ -776,7 +782,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
             <div className="space-y-4 pt-2 border-t border-purple-200/60 animate-fade-in">
               <div className="flex items-center justify-between">
                 <label className="block text-[11px] font-extrabold text-gray-700 uppercase tracking-wider">
-                  2. Add Step Entries for {selectedOverrideUser.name} ({overrideRows.length} Entry Row{overrideRows.length === 1 ? '' : 's'})
+                  2. Add Step Entries for {formatParticipantName(selectedOverrideUser.name)} ({overrideRows.length} Entry Row{overrideRows.length === 1 ? '' : 's'})
                 </label>
                 <button
                   type="button"
@@ -942,14 +948,14 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
 
                   <div>
                     <label className="block text-[11px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                      <MapPin size={13} className="text-[#4285F4]" /> Accenture Office Location
+                      <MapPin size={13} className="text-[#4285F4]" /> Office Location
                     </label>
                     <select
                       value={teamForm.officeId}
                       onChange={(e) => handleTeamFieldChange(teamIdx, 'officeId', e.target.value)}
                       className="w-full bg-white border border-gray-200 text-sm rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium"
                     >
-                      {ACCENTURE_GLOBAL_OFFICES.map(office => (
+                      {GLOBAL_OFFICES.map(office => (
                         <option key={office.id} value={office.id}>
                           📍 {office.displayName}
                         </option>
@@ -962,15 +968,17 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <label className="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
-                      Team Members
+                      Team Members (Max {MAX_TEAM_MEMBERS})
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => handleAddMemberRow(teamIdx)}
-                      className="text-[10px] font-bold text-[#4285F4] hover:text-blue-700 flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-sm transition-all"
-                    >
-                      <Plus size={12} /> Add Member Slot
-                    </button>
+                    {teamForm.memberInputs.length < MAX_TEAM_MEMBERS && (
+                      <button
+                        type="button"
+                        onClick={() => handleAddMemberRow(teamIdx)}
+                        className="text-[10px] font-bold text-[#4285F4] hover:text-blue-700 flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-sm transition-all"
+                      >
+                        <Plus size={12} /> Add Member Slot
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -1115,7 +1123,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                   <ul className="space-y-1.5 max-h-40 overflow-y-auto">
                     {members.map(m => (
                       <li key={m.id} className="flex justify-between items-center bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-700">
-                        <span>{m.name}</span>
+                        <span>{formatParticipantName(m.name)}</span>
                         <button
                           onClick={() => onRemoveParticipant(m.id)}
                           className="text-red-400 hover:text-red-600 text-[11px] font-bold"

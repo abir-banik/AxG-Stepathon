@@ -7,6 +7,7 @@ import {
   MAX_PARTICIPANT_STEPS_PER_ENTRY,
   computeWeekFromDate
 } from '../constants';
+import { formatParticipantName } from '../utils/nameFormatter';
 import { 
   Plus, Check, X, Trash2, Calendar, History, 
   Users, Award, Search, Sparkles, Footprints, ChevronRight
@@ -51,10 +52,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
     const val = e.target.value;
     let finalDate = val;
     if (val < EVENT_START_DATE) {
-      alert("Steps can only be logged starting from July 13th, 2026.");
+      alert("Steps can only be logged starting from October 19th, 2026.");
       finalDate = EVENT_START_DATE;
     } else if (val > EVENT_END_DATE) {
-      alert("Steps can only be logged up to August 5th, 2026.");
+      alert("Steps can only be logged up to November 17th, 2026.");
       finalDate = EVENT_END_DATE;
     } else if (val > todayStr) {
       alert("You can only log steps for today or a past date.");
@@ -69,14 +70,18 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   // Filter & Sort Users by Team, Search, and A-Z / Z-A Order
   const filteredUsers = users
     .filter(u => {
+      const displayName = formatParticipantName(u.name);
       const matchesTeam = selectedTeamId === 'ALL' || u.teamId === selectedTeamId || u.teamName === teams.find(t => t.id === selectedTeamId)?.name;
-      const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      const matchesSearch = displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             (u.teamName && u.teamName.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesTeam && matchesSearch;
     })
     .sort((a, b) => {
-      if (sortOrder === 'name-desc') return b.name.localeCompare(a.name);
-      return a.name.localeCompare(b.name);
+      const nameA = formatParticipantName(a.name);
+      const nameB = formatParticipantName(b.name);
+      if (sortOrder === 'name-desc') return nameB.localeCompare(nameA);
+      return nameA.localeCompare(nameB);
     });
 
   const selectedUser = users.find(u => u.id === selectedUserId);
@@ -86,6 +91,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
     if (selectedUserId && stepInput) {
       const val = parseInt(stepInput, 10);
       if (val > 0) {
+        if (val > MAX_PARTICIPANT_STEPS_PER_ENTRY) {
+          alert(`Maximum daily entry limit is ${MAX_PARTICIPANT_STEPS_PER_ENTRY.toLocaleString()} steps. For entries over 30,000 steps in a single day, please share a screenshot from your fitness app in the group chat!`);
+          return;
+        }
         await onAddSteps(selectedUserId, val, selectedWeek, selectedDate);
         setStepInput('');
       }
@@ -132,10 +141,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-blue-100 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-[#4285F4] text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                {selectedUser.name.charAt(0).toUpperCase()}
+                {formatParticipantName(selectedUser.name).charAt(0).toUpperCase()}
               </div>
               <div>
-                <h4 className="text-xl font-bold text-gray-900">{selectedUser.name}</h4>
+                <h4 className="text-xl font-bold text-gray-900">{formatParticipantName(selectedUser.name)}</h4>
                 <p className="text-xs text-blue-600 font-bold">
                   {selectedUser.teamName ? `Team: ${selectedUser.teamName}` : 'Participant'} • {(selectedUser.steps || 0).toLocaleString()} total steps
                 </p>
@@ -164,7 +173,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                   min={EVENT_START_DATE}
                   max={EVENT_END_DATE}
                   className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
-                  title="Select date of steps (July 13 to August 5 only)"
+                  title="Select date of steps (October 19 to November 17 only)"
                 />
               </div>
 
@@ -213,7 +222,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
           <div className="bg-white rounded-xl border border-blue-100 overflow-hidden">
             <div className="px-4 py-2.5 bg-blue-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-blue-100">
               <span className="text-xs font-bold text-blue-800 uppercase tracking-wide flex items-center gap-1.5">
-                <History size={14} /> Step History for {selectedUser.name} ({selectedUser.stepHistory?.length || 0} entries)
+                <History size={14} /> Step History for {formatParticipantName(selectedUser.name)} ({selectedUser.stepHistory?.length || 0} entries)
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-blue-700">Sort by:</span>
@@ -353,10 +362,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                   className="group bg-white border border-gray-200 hover:border-blue-500 hover:shadow-md rounded-2xl p-4 flex flex-col items-center text-center gap-2.5 transition-all duration-200 relative overflow-hidden"
                 >
                   <div className="w-12 h-12 rounded-full bg-blue-100 group-hover:bg-blue-600 group-hover:text-white text-blue-600 flex items-center justify-center font-bold text-lg transition-colors shadow-sm">
-                    {user.name.charAt(0).toUpperCase()}
+                    {formatParticipantName(user.name).charAt(0).toUpperCase()}
                   </div>
                   <div className="w-full">
-                    <h5 className="font-bold text-gray-800 text-sm truncate w-full px-1" title={user.name}>{user.name}</h5>
+                    <h5 className="font-bold text-gray-800 text-sm truncate w-full px-1" title={formatParticipantName(user.name)}>{formatParticipantName(user.name)}</h5>
                     {user.teamName && (
                       <span className="text-[11px] text-gray-400 block truncate font-medium mt-0.5" title={user.teamName}>{user.teamName}</span>
                     )}

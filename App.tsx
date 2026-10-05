@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { User, Team, AnnouncementBanner } from './types';
-import { IS_EVENT_CONCLUDED, SITE_ACCESS_PASSWORD, SITE_AUTH_STORAGE_KEY } from './constants';
+import { IS_EVENT_CONCLUDED, SITE_ACCESS_PASSWORD, SITE_AUTH_STORAGE_KEY, HOST_ADMIN_PASSCODE } from './constants';
+import { formatParticipantName } from './utils/nameFormatter';
 import GlobalOfficeMap from './components/GlobalOfficeMap';
 import DashboardStats from './components/DashboardStats';
 import HostAdminPanel from './components/HostAdminPanel';
 import ParticipantStepLogger from './components/ParticipantStepLogger';
+import WeeklyPhotoChallenge from './components/WeeklyPhotoChallenge';
 import TeamLeaderboardPage from './pages/TeamLeaderboardPage';
 import IndividualLeaderboardPage from './pages/IndividualLeaderboardPage';
 import WeeklyLeaderboardPage from './pages/WeeklyLeaderboardPage';
@@ -12,6 +14,8 @@ import FaqPage from './components/FaqPage';
 import AnnouncementBannerView from './components/AnnouncementBannerView';
 import EventConcludedPage from './components/EventConcludedPage';
 import SitePasswordGate from './components/SitePasswordGate';
+import HonorCodeModal from './components/HonorCodeModal';
+import stepathonBanner from './image.png';
 import { CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle, Lock } from 'lucide-react';
 import { api } from './api';
 
@@ -20,6 +24,7 @@ const App: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [announcement, setAnnouncement] = useState<AnnouncementBanner | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [hasAcceptedHonorCode, setHasAcceptedHonorCode] = useState<boolean>(false);
   const [isSiteUnlocked, setIsSiteUnlocked] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(SITE_AUTH_STORAGE_KEY) === SITE_ACCESS_PASSWORD;
@@ -37,6 +42,7 @@ const App: React.FC = () => {
     localStorage.removeItem(SITE_AUTH_STORAGE_KEY);
     setIsSiteUnlocked(false);
     setIsAdmin(false);
+    setHasAcceptedHonorCode(false);
   };
   
   const [isArchiveMode, setIsArchiveMode] = useState<boolean>(() => {
@@ -206,7 +212,7 @@ const App: React.FC = () => {
   };
 
   const handleAddParticipant = async (name: string, teamId: string, teamName: string, iconId: string) => {
-    await api.addUser(name, teamName, iconId, teamId);
+    await api.addUser(formatParticipantName(name), teamName, iconId, teamId);
   };
 
   const handleRemoveParticipant = async (participantId: string) => {
@@ -221,7 +227,7 @@ const App: React.FC = () => {
   const handleResetRace = async () => {
     const confirmation = window.prompt("DANGER: This will permanently delete ALL teams, racers, and step data.\n\nEnter Admin Password to confirm:");
     
-    if (confirmation && confirmation === 'AxGstepathon2026') {
+    if (confirmation && confirmation === HOST_ADMIN_PASSCODE) {
         setIsResetting(true);
         try {
             await api.resetRace();
@@ -249,6 +255,9 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-gray-900 p-4 md:p-8 pb-32 font-sans">
+      {!hasAcceptedHonorCode && (
+        <HonorCodeModal onAccept={() => setHasAcceptedHonorCode(true)} />
+      )}
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Archive Mode Banner */}
         {IS_EVENT_CONCLUDED && isArchiveMode && (
@@ -283,85 +292,102 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Top Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 gap-4 bg-white p-6 rounded-3xl shadow-sm border-0">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">
-              <span className="text-[#4285F4]">2nd</span>{" "}
-              <span className="text-[#EA4335]">Annual</span>{" "}
-              <span className="text-[#FBBC05]">Global</span>{" "}
-              <span className="text-[#34A853]">Stepathon</span>
-            </h1>
-            <p className="text-gray-500 mt-1 font-bold text-xs uppercase tracking-wider">
-              Inclusion & Diversity + Care • July 13 – August 5, 2026
-            </p>
-            <div className="mt-2.5 inline-flex flex-wrap items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-100">
-              <span>🌍 10+ Countries</span>
-              <span className="text-gray-300">•</span>
-              <span>🏆 39+ Teams</span>
-              <span className="text-gray-300">•</span>
-              <span>👟 135+ Participants</span>
-            </div>
+        {/* Top Hero Banner & Integrated Header Card */}
+        <header className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden">
+          {/* Official Step-a-Thon Panoramic Hero Artwork */}
+          <div className="relative w-full bg-gradient-to-r from-indigo-900 via-blue-800 to-purple-900">
+            <img
+              src={stepathonBanner}
+              alt="Step-a-Thon: Step Together, Thrive Together"
+              className="w-full h-auto block object-cover"
+            />
           </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Unit Preference Toggle (Miles vs Kilometers) */}
-            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl border border-gray-200">
-              <button
-                onClick={() => handleToggleUnit('mi')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  distanceUnit === 'mi'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                Miles (mi)
-              </button>
-              <button
-                onClick={() => handleToggleUnit('km')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  distanceUnit === 'km'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                Kilometers (km)
-              </button>
+
+          {/* Integrated Event Info & Controls Bar */}
+          <div className="p-5 md:px-7 md:py-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white border-t border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-wrap">
+              <div>
+                <h1 className="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-1.5">
+                  <span className="text-[#4285F4]">3rd</span>{" "}
+                  <span className="text-[#EA4335]">Annual</span>{" "}
+                  <span className="text-[#FBBC05]">Global</span>{" "}
+                  <span className="text-[#34A853]">Stepathon</span>
+                </h1>
+                <p className="text-gray-500 mt-0.5 font-bold text-[11px] uppercase tracking-wider">
+                  Inclusion & Diversity + Care • October 19 – November 20, 2026
+                </p>
+              </div>
+
+              <div className="inline-flex flex-wrap items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-100">
+                <span>🌍 10+ Countries</span>
+                <span className="text-gray-300">•</span>
+                <span>🏆 39+ Teams</span>
+                <span className="text-gray-300">•</span>
+                <span>👟 135+ Participants</span>
+              </div>
             </div>
-
-            {/* Status Badge */}
-            {connectionStatus === 'live' && (
-              <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-100 transition-colors">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <span className="text-sm font-bold text-[#34A853]">LIVE SYNC</span>
-              </div>
-            )}
             
-            {connectionStatus === 'local' && (
-               <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border border-gray-200 transition-colors">
-                <CloudOff size={16} className="text-gray-500" />
-                <span className="text-sm font-bold text-gray-500">OFFLINE</span>
+            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+              {/* Unit Preference Toggle (Miles vs Kilometers) */}
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl border border-gray-200">
+                <button
+                  onClick={() => handleToggleUnit('mi')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    distanceUnit === 'mi'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  Miles (mi)
+                </button>
+                <button
+                  onClick={() => handleToggleUnit('km')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    distanceUnit === 'km'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  Kilometers (km)
+                </button>
               </div>
-            )}
 
-             {connectionStatus === 'connecting' && (
-               <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 transition-colors">
-                <CloudLightning size={16} className="text-blue-500 animate-pulse" />
-                <span className="text-sm font-bold text-blue-500">CONNECTING...</span>
+              <div className="flex items-center gap-2.5">
+                {/* Status Badge */}
+                {connectionStatus === 'live' && (
+                  <div className="flex items-center gap-2 bg-green-50 px-3.5 py-2 rounded-full border border-green-100 transition-colors">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-[#34A853]">LIVE SYNC</span>
+                  </div>
+                )}
+                
+                {connectionStatus === 'local' && (
+                  <div className="flex items-center gap-2 bg-gray-100 px-3.5 py-2 rounded-full border border-gray-200 transition-colors">
+                    <CloudOff size={15} className="text-gray-500" />
+                    <span className="text-xs font-bold text-gray-500">OFFLINE</span>
+                  </div>
+                )}
+
+                {connectionStatus === 'connecting' && (
+                  <div className="flex items-center gap-2 bg-blue-50 px-3.5 py-2 rounded-full border border-blue-100 transition-colors">
+                    <CloudLightning size={15} className="text-blue-500 animate-pulse" />
+                    <span className="text-xs font-bold text-blue-500">CONNECTING...</span>
+                  </div>
+                )}
+
+                {/* Lock Site Button */}
+                <button
+                  onClick={handleSiteLock}
+                  title="Lock site"
+                  className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors border border-gray-200 cursor-pointer"
+                >
+                  <Lock size={16} />
+                </button>
               </div>
-            )}
-
-            {/* Lock Site Button */}
-            <button
-              onClick={handleSiteLock}
-              title="Lock site"
-              className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors border border-gray-200 cursor-pointer"
-            >
-              <Lock size={16} />
-            </button>
+            </div>
           </div>
         </header>
 
@@ -451,23 +477,8 @@ const App: React.FC = () => {
             {/* 35M Global Step Goal Progress Bar */}
             <GlobalOfficeMap teams={teams} users={users} distanceUnit={distanceUnit} />
 
-            {/* Community Photo & Selfie Banner */}
-            <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-3xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl text-amber-100 text-xl">
-                  📸
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-base text-white">Share Your Walking Selfies & Team Pictures!</h4>
-                  <p className="text-amber-100 text-xs mt-0.5">
-                    Post your photos in team chat for bonus points, weekly shoutouts, and a chance to win extra prizes.
-                  </p>
-                </div>
-              </div>
-              <div className="bg-white text-gray-900 text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm whitespace-nowrap">
-                🌟 Bonus Points & Shoutouts
-              </div>
-            </div>
+            {/* Weekly Photo Challenge (Auto-refreshing current week only) */}
+            <WeeklyPhotoChallenge />
 
             {/* Participant Step Logger */}
             <ParticipantStepLogger

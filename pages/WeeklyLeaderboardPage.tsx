@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { User, Team } from '../types';
 import { EVENT_WEEKS, WEEKLY_DEADLINES } from '../constants';
-import { Calendar, Trophy, Award, Crown, Users, Clock } from 'lucide-react';
+import { formatParticipantName } from '../utils/nameFormatter';
+import { Calendar, Trophy, Award, Crown, Clock } from 'lucide-react';
 
 interface WeeklyLeaderboardPageProps {
   users: User[];
@@ -33,7 +34,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
 
   const currentWeekInfo = EVENT_WEEKS.find(w => w.weekNumber === selectedWeekNum) || EVENT_WEEKS[0];
 
-  // 1. Calculate Individual Stats for Selected Week (respecting Monday 8:00 PM ET cutoff)
+  // 1. Calculate Individual Stats for Selected Week (respecting weekly Midnight PST cutoff)
   const individualWeeklyStats = users.map(user => {
     const weeklySteps = calculateValidWeeklySteps(user, selectedWeekNum);
     const weeklyMiles = weeklySteps / 2000;
@@ -49,7 +50,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
   // Top 3 Individuals for Selected Week
   const top3Individuals = individualWeeklyStats.slice(0, 3).filter(u => u.weeklySteps > 0);
 
-  // 2. Calculate Team Stats for Selected Week (respecting Monday 8:00 PM ET cutoff)
+  // 2. Calculate Team Stats for Selected Week (respecting weekly Midnight PST cutoff)
   const teamWeeklyStats = teams.map(team => {
     const members = users.filter(u => u.teamId === team.id || u.teamName === team.name);
     const totalWeeklySteps = members.reduce((acc, m) => {
@@ -91,7 +92,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-purple-100">
-              <Calendar size={14} /> 4-Week Challenge (July 13th – August 5th)
+              <Calendar size={14} /> 5-Week Challenge (October 19th – November 17th)
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Weekly Leaderboard</h2>
             <p className="text-purple-100 text-sm max-w-xl">
@@ -141,15 +142,15 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         <div className="space-y-2 flex-1">
           <div>
             <span className="font-extrabold text-purple-950 text-sm block">
-              {selectedWeekNum === 4
-                ? '🕗 Final Challenge Deadline: Tonight @ 12:00 AM PST / 3:00 AM EST'
-                : '🕗 Weekly Submission Deadline: Every Monday @ 8:00 PM ET'}
+              {selectedWeekNum === 5
+                ? '🕗 Final Challenge Deadline: Wednesday, Nov 18 @ Midnight PST'
+                : '🕗 Weekly Submission Deadline: Every Monday @ Midnight PST'}
             </span>
             <p className="text-purple-900 font-medium text-xs mt-0.5">
-              {selectedWeekNum === 4 ? (
-                <>Log all final steps by <strong>Tonight at 12:00 AM PST / 3:00 AM EST</strong> to count toward final Week 4 & Overall Challenge standings! Please double-check your step counts to ensure all entries are recorded.</>
+              {selectedWeekNum === 5 ? (
+                <>Log all final steps by <strong>Wednesday, November 18 at Midnight PST</strong> to count toward final Week 5 & Overall Challenge standings! Please double-check your step counts to ensure all entries are recorded.</>
               ) : (
-                <>Log your steps by <strong>Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!</>
+                <>Log your steps by <strong>Monday at Midnight PST (11:59 PM PST)</strong> to count toward that week's Leaderboard standings and winner announcement!</>
               )}
             </p>
           </div>
@@ -161,9 +162,9 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
             <ul className="space-y-1 pl-1 text-purple-900 font-medium">
               <li>
                 • <strong>Convert to your local time:</strong>{' '}
-                {selectedWeekNum === 4
-                  ? 'Tonight 12:00 AM PST (California) • Tonight 3:00 AM EST (New York) • Thu 4:00 AM ART (Argentina) • Thu 8:00 AM (Dublin) • Thu 12:30 PM IST (India) • Thu 3:00 PM (Manila).'
-                  : 'Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).'}
+                {selectedWeekNum === 5
+                  ? 'Wed Midnight PST (California) • Thu 3:00 AM EST (New York) • Thu 4:00 AM ART (Argentina) • Thu 8:00 AM (Dublin) • Thu 1:30 PM IST (India) • Thu 4:00 PM MYT (Manila/Malaysia).'
+                  : 'Mon Midnight PST (California) • Tue 3:00 AM EST (New York) • Tue 4:00 AM ART (Argentina) • Tue 8:00 AM (Dublin) • Tue 1:30 PM IST (India) • Tue 4:00 PM MYT (Manila/Malaysia).'}
               </li>
               <li>• <strong>Double check your steps:</strong> Verify all daily entries in your logger before the deadline!</li>
             </ul>
@@ -270,7 +271,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
                     </span>
                     <div>
                       <div className="font-bold text-sm text-gray-900 flex items-center gap-1">
-                        {user.name}
+                        {formatParticipantName(user.name)}
                         {idx === 0 && <Crown size={14} className="text-amber-500" />}
                       </div>
                       <div className="text-[11px] text-gray-400 font-medium">

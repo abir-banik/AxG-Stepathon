@@ -4,13 +4,14 @@ import { describe, it, expect } from 'vitest';
 import FaqPage from '../components/FaqPage';
 
 describe('FaqPage Component', () => {
-  it('renders FAQ banner and key dates grid', () => {
+  it('renders FAQ banner, key dates grid, and Weekly Photo Challenge banner', () => {
     render(<FaqPage />);
 
     expect(screen.getByText('Frequently Asked Questions')).toBeInTheDocument();
-    expect(screen.getByText('July 6 – July 10')).toBeInTheDocument();
-    expect(screen.getByText('July 13 – August 5')).toBeInTheDocument();
-    expect(screen.getByText('Tonight @ 12 AM PST / 3 AM EST')).toBeInTheDocument();
+    expect(screen.getByText('October 12 – October 16')).toBeInTheDocument();
+    expect(screen.getByText('October 19 – November 20')).toBeInTheDocument();
+    expect(screen.getByText('Mondays @ Midnight PST')).toBeInTheDocument();
+    expect(screen.getByText('November 20th')).toBeInTheDocument();
   });
 
   it('renders interactive host email contact links', () => {

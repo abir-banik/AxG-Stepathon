@@ -22,16 +22,19 @@ describe('Centralized Event Config & Step Logic', () => {
     expect(IS_EVENT_CONCLUDED).toBe(false);
   });
 
-  it('computes week numbers dynamically from EVENT_WEEKS', () => {
+  it('computes week numbers dynamically from EVENT_WEEKS (5 weeks)', () => {
+    expect(EVENT_WEEKS.length).toBe(5);
     expect(computeWeekFromDate('')).toBe(1);
-    expect(computeWeekFromDate('2026-07-13')).toBe(1);
-    expect(computeWeekFromDate('2026-07-19')).toBe(1);
-    expect(computeWeekFromDate('2026-07-20')).toBe(2);
-    expect(computeWeekFromDate('2026-07-26')).toBe(2);
-    expect(computeWeekFromDate('2026-07-27')).toBe(3);
-    expect(computeWeekFromDate('2026-08-02')).toBe(3);
-    expect(computeWeekFromDate('2026-08-03')).toBe(4);
-    expect(computeWeekFromDate('2026-08-05')).toBe(4);
+    expect(computeWeekFromDate('2026-10-19')).toBe(1);
+    expect(computeWeekFromDate('2026-10-25')).toBe(1);
+    expect(computeWeekFromDate('2026-10-26')).toBe(2);
+    expect(computeWeekFromDate('2026-11-01')).toBe(2);
+    expect(computeWeekFromDate('2026-11-02')).toBe(3);
+    expect(computeWeekFromDate('2026-11-08')).toBe(3);
+    expect(computeWeekFromDate('2026-11-09')).toBe(4);
+    expect(computeWeekFromDate('2026-11-15')).toBe(4);
+    expect(computeWeekFromDate('2026-11-16')).toBe(5);
+    expect(computeWeekFromDate('2026-11-17')).toBe(5);
     expect(Object.keys(WEEKLY_DEADLINES).length).toBe(EVENT_WEEKS.length);
   });
 
@@ -42,22 +45,22 @@ describe('Centralized Event Config & Step Logic', () => {
 
   it('replaces existing entry for the same date instead of summing', () => {
     const existingHistory: StepEntry[] = [
-      { amount: 5000, date: '2026-07-25', week: 2, submittedAt: '2026-07-25T10:00:00.000Z' },
-      { amount: 4000, date: '2026-07-26', week: 2, submittedAt: '2026-07-26T10:00:00.000Z' }
+      { amount: 5000, date: '2026-10-25', week: 1, submittedAt: '2026-10-25T10:00:00.000Z' },
+      { amount: 4000, date: '2026-10-26', week: 2, submittedAt: '2026-10-26T10:00:00.000Z' }
     ];
 
     const newEntry: StepEntry = {
       amount: 8000,
-      date: '2026-07-25', // Same date as existing entry #1
-      week: 2,
-      submittedAt: '2026-07-25T14:00:00.000Z'
+      date: '2026-10-25', // Same date as existing entry #1
+      week: 1,
+      submittedAt: '2026-10-25T14:00:00.000Z'
     };
 
     const historyWithoutSameDate = existingHistory.filter(e => e.date !== newEntry.date);
     const newHistory = [...historyWithoutSameDate, newEntry];
 
     expect(newHistory.length).toBe(2);
-    const entry25 = newHistory.find(e => e.date === '2026-07-25');
+    const entry25 = newHistory.find(e => e.date === '2026-10-25');
     expect(entry25?.amount).toBe(8000);
 
     const newTotalSteps = newHistory.reduce((sum, e) => sum + e.amount, 0);
@@ -76,9 +79,10 @@ describe('Centralized Event Config & Step Logic', () => {
       return bypass || (entryDate >= EVENT_START_DATE && entryDate <= EVENT_END_DATE);
     };
 
-    expect(isAllowed('2026-08-05', false)).toBe(true);
-    expect(isAllowed('2026-08-06', false)).toBe(false);
-    expect(isAllowed('2026-08-07', false)).toBe(false);
-    expect(isAllowed('2026-08-06', true)).toBe(true);
+    expect(isAllowed('2026-11-17', false)).toBe(true);
+    expect(isAllowed('2026-11-18', false)).toBe(false);
+    expect(isAllowed('2026-11-20', false)).toBe(false);
+    expect(isAllowed('2026-11-18', true)).toBe(true);
   });
 });
+

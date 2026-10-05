@@ -40,7 +40,7 @@ describe('SitePasswordGate Component', () => {
     render(<SitePasswordGate onUnlock={onUnlock} />);
 
     const input = screen.getByPlaceholderText('Enter event password...');
-    fireEvent.change(input, { target: { value: 'AxGstepathon2026' } });
+    fireEvent.change(input, { target: { value: 'STEPATHONADMIN2026' } });
     fireEvent.submit(screen.getByRole('button', { name: /Enter Stepathon/i }).closest('form')!);
 
     expect(onUnlock).toHaveBeenCalledWith(true);

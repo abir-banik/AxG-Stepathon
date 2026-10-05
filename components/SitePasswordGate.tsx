@@ -32,7 +32,7 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ onUnlock }) => {
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-gray-900 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100 space-y-6 animate-fade-in">
-        {/* Google 4-Color Top Accent Bar */}
+        {/* 4-Color Top Accent Bar */}
         <div className="flex h-1.5 w-24 mx-auto rounded-full overflow-hidden">
           <div className="flex-1 bg-[#4285F4]" />
           <div className="flex-1 bg-[#EA4335]" />
@@ -46,7 +46,7 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ onUnlock }) => {
             <Footprints size={28} />
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            <span className="text-[#4285F4]">2nd</span>{" "}
+            <span className="text-[#4285F4]">3rd</span>{" "}
             <span className="text-[#EA4335]">Annual</span>{" "}
             <span className="text-[#FBBC05]">Global</span>{" "}
             <span className="text-[#34A853]">Stepathon</span>

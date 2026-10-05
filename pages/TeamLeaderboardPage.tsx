@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Team, User } from '../types';
 import { TOTAL_GOAL_MILES } from '../constants';
+import { formatParticipantName } from '../utils/nameFormatter';
 import { Award, Users, TrendingUp, Shield, Crown, Sparkles, ChevronRight, Footprints } from 'lucide-react';
 
 interface TeamLeaderboardPageProps {
@@ -167,7 +168,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
                     <div className="flex items-center gap-2">
                       <Sparkles size={16} className="text-amber-500" />
                       <span className="font-bold text-gray-700">Top Team Walker:</span>
-                      <span className="font-extrabold text-gray-900">{team.topContributor.name}</span>
+                      <span className="font-extrabold text-gray-900">{formatParticipantName(team.topContributor.name)}</span>
                     </div>
                     <span className="font-bold text-blue-600">
                       {(team.topContributor.steps || 0).toLocaleString()} steps ({( (team.topContributor.steps || 0) / (isKm ? 1242.74 : 2000) ).toFixed(1)} {isKm ? 'km' : 'mi'})
@@ -197,7 +198,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
                             <div className="flex items-center gap-2.5">
                               <span className="text-xs font-extrabold text-gray-400 w-5">#{mIndex + 1}</span>
                               <div>
-                                <div className="font-bold text-xs text-gray-900">{member.name}</div>
+                                <div className="font-bold text-xs text-gray-900">{formatParticipantName(member.name)}</div>
                                 <div className="text-[11px] text-gray-400 font-medium">{percentOfTeam.toFixed(0)}% of team total</div>
                               </div>
                             </div>

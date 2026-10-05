@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Team } from '../types';
+import { formatParticipantName } from '../utils/nameFormatter';
 import { Trophy, Search, Users, Crown, Medal } from 'lucide-react';
 
 interface IndividualLeaderboardPageProps {
@@ -19,8 +20,10 @@ const IndividualLeaderboardPage: React.FC<IndividualLeaderboardPageProps> = ({
 
   // Filter & Sort Users Overall
   const filteredUsers = users.filter(u => {
+    const formattedName = formatParticipantName(u.name);
     const matchesTeam = selectedTeamId === 'ALL' || u.teamId === selectedTeamId || u.teamName === teams.find(t => t.id === selectedTeamId)?.name;
-    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = formattedName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (u.teamName && u.teamName.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesTeam && matchesSearch;
   });
@@ -147,7 +150,7 @@ const IndividualLeaderboardPage: React.FC<IndividualLeaderboardPageProps> = ({
                             {user.name.charAt(0).toUpperCase()}
                           </div>
                           <span className="font-extrabold text-gray-900 flex items-center gap-1.5">
-                            {user.name}
+                            {formatParticipantName(user.name)}
                             {rank === 1 && <Crown size={14} className="text-amber-500" />}
                           </span>
                         </div>

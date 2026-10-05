@@ -65,25 +65,26 @@ describe('Export Helpers Utility', () => {
     expect(escapeCSV(undefined)).toBe('');
   });
 
-  it('generates Master Participant Roster CSV with rankings and weekly steps', () => {
+  it('generates Master Participant Roster CSV with rankings, 5 weeks, and First L. names', () => {
     const csv = generateMasterRosterCSV(mockUsers, mockTeams);
     const lines = csv.split('\n');
 
     // Header validation
     expect(lines[0]).toContain('Overall Rank,Participant Name,Team Name,Office Location');
-    expect(lines[0]).toContain('Week 1 Steps (Jul 13-19)');
+    expect(lines[0]).toContain('Week 1 Steps (Oct 19-25)');
+    expect(lines[0]).toContain('Week 5 Steps (Nov 16-17)');
     expect(lines[0]).toContain('Total Cumulative Steps');
 
-    // Top participant should be Charlie Brown (30,000 steps)
-    expect(lines[1]).toContain('1,Charlie Brown,Trailblazers');
+    // Top participant should be Charlie B. (30,000 steps)
+    expect(lines[1]).toContain('1,Charlie B.,Trailblazers');
     expect(lines[1]).toContain('30000');
 
-    // Second participant should be Alice (25,000 steps with escaped quotes)
-    expect(lines[2]).toContain('2,"Alice ""The Runner"" Smith","Boba Walkers, Inc."');
+    // Second participant should be Alice S. (25,000 steps)
+    expect(lines[2]).toContain('2,Alice S.,"Boba Walkers, Inc."');
     expect(lines[2]).toContain('25000');
 
-    // Third participant should be Bob (15,000 steps)
-    expect(lines[3]).toContain('3,Bob Jones,"Boba Walkers, Inc."');
+    // Third participant should be Bob J. (15,000 steps)
+    expect(lines[3]).toContain('3,Bob J.,"Boba Walkers, Inc."');
     expect(lines[3]).toContain('15000');
   });
 
@@ -128,12 +129,14 @@ describe('Export Helpers Utility', () => {
     const jsonStr = generateRawJSONBackup(mockUsers, mockTeams, mockAnnouncement);
     const parsed = JSON.parse(jsonStr);
 
-    expect(parsed.event).toBe('2nd Annual Global Step-a-Thon');
+    expect(parsed.event).toBe('3rd Annual Global Stepathon');
     expect(parsed.summary.totalParticipants).toBe(3);
     expect(parsed.summary.totalTeams).toBe(2);
     expect(parsed.summary.totalSteps).toBe(70000); // 25k + 15k + 30k
     expect(parsed.teams.length).toBe(2);
     expect(parsed.users.length).toBe(3);
+    expect(parsed.users[0].name).toBe('Alice S.');
     expect(parsed.announcement.message).toBe('Test message');
   });
 });
+

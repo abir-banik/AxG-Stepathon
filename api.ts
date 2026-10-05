@@ -1,5 +1,6 @@
 import { User, StepEntry, Team, AnnouncementBanner } from './types';
 import { EVENT_END_DATE, MAX_PARTICIPANT_STEPS_PER_ENTRY, MAX_HOST_OVERRIDE_STEPS_PER_ENTRY, computeWeekFromDate } from './constants';
+import { formatParticipantName } from './utils/nameFormatter';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, addDoc, 
@@ -46,6 +47,7 @@ const getLocalUsers = (): User[] => {
     // Sanitize data
     return users.map((u: any) => ({
       ...u,
+      name: formatParticipantName(u.name || ''),
       steps: typeof u.steps === 'number' ? u.steps : 0,
       stepHistory: Array.isArray(u.stepHistory) 
         ? u.stepHistory.map((e: any) => ({ ...e, amount: typeof e.amount === 'number' ? e.amount : 0 }))
@@ -144,6 +146,7 @@ const startSnapshotListener = () => {
         return {
             id: doc.id,
             ...data,
+            name: formatParticipantName(data.name || ''),
             // Ensure steps is a number
             steps: typeof data.steps === 'number' ? data.steps : 0,
             // Sanitize stepHistory
@@ -288,8 +291,9 @@ export const api = {
   // Create a new user
   // WE ALWAYS TRY FIREBASE FIRST NOW, REGARDLESS OF PREVIOUS STATUS
   async addUser(name: string, teamName: string, iconId: string, teamId?: string): Promise<User | null> {
+    const formattedName = formatParticipantName(name);
     const newUserBase = {
-      name,
+      name: formattedName,
       teamId: teamId || "",
       teamName: teamName || "",
       iconId,
@@ -573,6 +577,7 @@ export const api = {
 
         const { deduped: normalizedHistory, changed } = deduplicateHistory(history);
         let needsUpdate = changed;
+        const formattedName = formatParticipantName(userData.name || '');
 
         const recomputedTotal = normalizedHistory.reduce((sum, e) => sum + e.amount, 0);
         const recomputedWeekly: Record<string, number> = {};
@@ -581,13 +586,18 @@ export const api = {
           recomputedWeekly[wk] = (recomputedWeekly[wk] || 0) + e.amount;
         });
 
-        if (userData.steps !== recomputedTotal || JSON.stringify(userData.weeklySteps || {}) !== JSON.stringify(recomputedWeekly)) {
+        if (
+          userData.name !== formattedName ||
+          userData.steps !== recomputedTotal ||
+          JSON.stringify(userData.weeklySteps || {}) !== JSON.stringify(recomputedWeekly)
+        ) {
           needsUpdate = true;
         }
 
         if (needsUpdate) {
           const userRef = doc(db, RACERS_COLLECTION, docSnapshot.id);
           batch.update(userRef, {
+            name: formattedName,
             steps: recomputedTotal,
             weeklySteps: recomputedWeekly,
             stepHistory: normalizedHistory,

@@ -1,19 +1,20 @@
 export const IS_EVENT_CONCLUDED = false; // Toggle true after event ends to show Thank You landing page
 export const SITE_ACCESS_PASSWORD = 'STEPATHON2026'; // Shared participant password to access the site
-export const HOST_ADMIN_PASSCODE = 'AxGstepathon2026'; // Host admin portal passcode
+export const HOST_ADMIN_PASSCODE = 'STEPATHONADMIN2026'; // Host admin portal passcode
 export const SITE_AUTH_STORAGE_KEY = 'stepathon_v3_site_auth';
 
-export const EVENT_START_DATE = '2026-07-13';
-export const EVENT_END_DATE = '2026-08-05';
+export const EVENT_START_DATE = '2026-10-19';
+export const EVENT_END_DATE = '2026-11-17';
 
 export const GLOBAL_STEP_GOAL = 35000000; // 35,000,000 Global Step Target
 export const TOTAL_GOAL_STEPS = GLOBAL_STEP_GOAL;
 export const STEPS_PER_MILE = 2000;
 export const TOTAL_GOAL_MILES = GLOBAL_STEP_GOAL / STEPS_PER_MILE;
 export const MAX_USERS = 200;
+export const MAX_TEAM_MEMBERS = 8;
 export const MAX_PARTICIPANT_STEPS_PER_ENTRY = 30000;
 export const MAX_HOST_OVERRIDE_STEPS_PER_ENTRY = 200000;
-export const TOTAL_WEEKS = 4; // 4-Week Challenge (July 13th - Aug 5th)
+export const TOTAL_WEEKS = 5; // 5-Week Challenge (October 19 – November 17, 2026)
 
 export interface WeekDefinition {
   weekNumber: number;
@@ -30,42 +31,52 @@ export const EVENT_WEEKS: WeekDefinition[] = [
   {
     weekNumber: 1,
     label: "Week 1",
-    startDate: "July 13",
-    endDate: "July 19",
-    shortRange: "Jul 13-19",
-    startIso: "2026-07-13",
-    endIso: "2026-07-19",
-    deadlineUtc: "2026-07-21T00:00:00.000Z" // Monday July 20 @ 8:00 PM ET
+    startDate: "October 19",
+    endDate: "October 25",
+    shortRange: "Oct 19-25",
+    startIso: "2026-10-19",
+    endIso: "2026-10-25",
+    deadlineUtc: "2026-10-27T08:00:00.000Z" // Monday Oct 26 @ Midnight PST (3:00 AM EST)
   },
   {
     weekNumber: 2,
     label: "Week 2",
-    startDate: "July 20",
-    endDate: "July 26",
-    shortRange: "Jul 20-26",
-    startIso: "2026-07-20",
-    endIso: "2026-07-26",
-    deadlineUtc: "2026-07-28T00:00:00.000Z" // Monday July 27 @ 8:00 PM ET
+    startDate: "October 26",
+    endDate: "November 1",
+    shortRange: "Oct 26-Nov 1",
+    startIso: "2026-10-26",
+    endIso: "2026-11-01",
+    deadlineUtc: "2026-11-03T08:00:00.000Z" // Monday Nov 2 @ Midnight PST (3:00 AM EST)
   },
   {
     weekNumber: 3,
     label: "Week 3",
-    startDate: "July 27",
-    endDate: "August 2",
-    shortRange: "Jul 27-Aug 2",
-    startIso: "2026-07-27",
-    endIso: "2026-08-02",
-    deadlineUtc: "2026-08-04T00:00:00.000Z" // Monday August 3 @ 8:00 PM ET
+    startDate: "November 2",
+    endDate: "November 8",
+    shortRange: "Nov 2-8",
+    startIso: "2026-11-02",
+    endIso: "2026-11-08",
+    deadlineUtc: "2026-11-10T08:00:00.000Z" // Monday Nov 9 @ Midnight PST (3:00 AM EST)
   },
   {
     weekNumber: 4,
     label: "Week 4",
-    startDate: "August 3",
-    endDate: "August 5",
-    shortRange: "Aug 3-5",
-    startIso: "2026-08-03",
-    endIso: "2026-08-05",
-    deadlineUtc: "2026-08-06T14:00:00.000Z" // Thursday August 6 @ 9:00 AM EST
+    startDate: "November 9",
+    endDate: "November 15",
+    shortRange: "Nov 9-15",
+    startIso: "2026-11-09",
+    endIso: "2026-11-15",
+    deadlineUtc: "2026-11-17T08:00:00.000Z" // Monday Nov 16 @ Midnight PST (3:00 AM EST)
+  },
+  {
+    weekNumber: 5,
+    label: "Week 5",
+    startDate: "November 16",
+    endDate: "November 17",
+    shortRange: "Nov 16-17",
+    startIso: "2026-11-16",
+    endIso: "2026-11-17",
+    deadlineUtc: "2026-11-19T08:00:00.000Z" // Wednesday Nov 18 @ Midnight PST (Final submission deadline)
   }
 ];
 
@@ -84,7 +95,182 @@ export const computeWeekFromDate = (dateStr: string): number => {
   return 1;
 };
 
-export interface AccentureOffice {
+export interface PhotoChallengePromptOption {
+  emoji: string;
+  title: string;
+  description: string;
+  isFeatured?: boolean;
+}
+
+export interface WeeklyPhotoChallengeConfig {
+  weekNumber: number; // 0 for pre-event teaser, 1-5 for event weeks
+  badgeLabel: string;
+  themeTitle: string;
+  dateRangeLabel: string;
+  startIso: string;
+  endIso: string;
+  prompts: PhotoChallengePromptOption[];
+}
+
+export const PRE_EVENT_PHOTO_CHALLENGE: WeeklyPhotoChallengeConfig = {
+  weekNumber: 0,
+  badgeLabel: "Weekly Photo Challenge • Unlocks Oct 19",
+  themeTitle: "Something Exciting is Brewing... Lace Up & Warm Up Your Camera! 👟📸",
+  dateRangeLabel: "Countdown to October 19",
+  startIso: "2026-01-01",
+  endIso: "2026-10-18",
+  prompts: [
+    {
+      emoji: "🕵️‍♂️",
+      title: "Top-Secret Weekly Themes Incoming",
+      description: "Every Monday starting October 19, a brand-new themed photo challenge will unlock right here! Snap a photo during your walk and share it in the group chat for a chance to be crowned Photo Challenge Champion.",
+      isFeatured: true
+    }
+  ]
+};
+
+export const WEEKLY_PHOTO_CHALLENGES: WeeklyPhotoChallengeConfig[] = [
+  {
+    weekNumber: 1,
+    badgeLabel: "Week 1 Photo Challenge",
+    themeTitle: "Wear Pink for Breast Cancer Awareness",
+    dateRangeLabel: "October 19 – October 25",
+    startIso: "2026-10-19",
+    endIso: "2026-10-25",
+    prompts: [
+      {
+        emoji: "🌸",
+        title: "Find Something Pink",
+        description: "Photograph a pink flower, sign, mural, building, or object you discover during your steps.",
+        isFeatured: true
+      },
+      {
+        emoji: "💗",
+        title: "Pink in Motion",
+        description: "Take a selfie wearing pink while on your walk."
+      }
+    ]
+  },
+  {
+    weekNumber: 2,
+    badgeLabel: "Week 2 Photo Challenge",
+    themeTitle: "Mental Health Awareness Month",
+    dateRangeLabel: "October 26 – November 1",
+    startIso: "2026-10-26",
+    endIso: "2026-11-01",
+    prompts: [
+      {
+        emoji: "🧘",
+        title: "Mindful Moment",
+        description: "Photograph a beautiful sunrise, sunset, tree, beach, park, or other view you noticed while walking.",
+        isFeatured: true
+      },
+      {
+        emoji: "🌿",
+        title: "My Peaceful Place",
+        description: "Capture a location that helps you feel calm or grounded."
+      },
+      {
+        emoji: "☀️",
+        title: "Mood Booster",
+        description: "Share something from your walk that made you smile."
+      }
+    ]
+  },
+  {
+    weekNumber: 3,
+    badgeLabel: "Week 3 Photo Challenge",
+    themeTitle: "Celebrating Diwali",
+    dateRangeLabel: "November 2 – November 8",
+    startIso: "2026-11-02",
+    endIso: "2026-11-08",
+    prompts: [
+      {
+        emoji: "🪔",
+        title: "Find the Light",
+        description: "Take a photo of something bright, colorful, or illuminating during your walk.",
+        isFeatured: true
+      },
+      {
+        emoji: "✨",
+        title: "Light Up Your Path",
+        description: "Capture a photo of lights, lanterns, candles, reflections, or a beautifully lit scene."
+      }
+    ]
+  },
+  {
+    weekNumber: 4,
+    badgeLabel: "Week 4 Photo Challenge",
+    themeTitle: "Movember Men's Health",
+    dateRangeLabel: "November 9 – November 15",
+    startIso: "2026-11-09",
+    endIso: "2026-11-15",
+    prompts: [
+      {
+        emoji: "🙌",
+        title: "Walk With Someone You Appreciate",
+        description: "Share a photo walking with a man (or men!) you appreciate!",
+        isFeatured: true
+      },
+      {
+        emoji: "👨",
+        title: "Mustache Moment",
+        description: "Draw, wear, or find a mustache and snap a photo while walking."
+      },
+      {
+        emoji: "🚶",
+        title: "Walk With a Buddy",
+        description: "Take a picture walking with a colleague, family member, friend, or pet."
+      }
+    ]
+  },
+  {
+    weekNumber: 5,
+    badgeLabel: "Week 5 Photo Challenge",
+    themeTitle: "Gratitude, Community, and Connection",
+    dateRangeLabel: "November 16 – November 20",
+    startIso: "2026-11-16",
+    endIso: "2026-12-31",
+    prompts: [
+      {
+        emoji: "❤️",
+        title: "Grateful for This",
+        description: "Share a photo of something you're thankful for that you encountered during your walk.",
+        isFeatured: true
+      },
+      {
+        emoji: "🌳",
+        title: "Honoring the Land",
+        description: "Take a photo of a natural space, park, trail, tree, river, or landscape that you appreciate and enjoy."
+      },
+      {
+        emoji: "🍂",
+        title: "Signs of the Season",
+        description: "Photograph your favorite fall scene while getting your steps in."
+      }
+    ]
+  }
+];
+
+export const getActivePhotoChallenge = (dateStr?: string): WeeklyPhotoChallengeConfig => {
+  const now = new Date();
+  const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const cleanDate = (dateStr || localToday).substring(0, 10);
+
+  if (cleanDate < EVENT_START_DATE) {
+    return PRE_EVENT_PHOTO_CHALLENGE;
+  }
+
+  for (let i = WEEKLY_PHOTO_CHALLENGES.length - 1; i >= 0; i--) {
+    if (cleanDate >= WEEKLY_PHOTO_CHALLENGES[i].startIso) {
+      return WEEKLY_PHOTO_CHALLENGES[i];
+    }
+  }
+
+  return PRE_EVENT_PHOTO_CHALLENGE;
+};
+
+export interface GlobalOffice {
   id: string;
   city: string;
   country: string;
@@ -93,7 +279,7 @@ export interface AccentureOffice {
   lng: number;
 }
 
-export const ACCENTURE_GLOBAL_OFFICES: AccentureOffice[] = [
+export const GLOBAL_OFFICES: GlobalOffice[] = [
   { id: 'na', city: 'N/A', country: 'N/A', displayName: 'N/A', lat: 0, lng: 0 },
   { id: 'manila', city: 'Manila', country: 'Philippines', displayName: 'Manila, Philippines', lat: 14.5547, lng: 121.0244 },
   { id: 'chicago', city: 'Chicago, IL', country: 'United States', displayName: 'Chicago, IL (US)', lat: 41.8781, lng: -87.6298 },

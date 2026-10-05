@@ -9,7 +9,7 @@ const mockTeams: Team[] = [
 ];
 
 const mockUsers: User[] = [
-  { id: 'user-1', name: 'Alice', teamId: 'team-1', teamName: 'Boba Walkers', steps: 10000, weeklySteps: {}, stepHistory: [], iconId: 'smile' }
+  { id: 'user-1', name: 'Alice Smith', teamId: 'team-1', teamName: 'Boba Walkers', steps: 10000, weeklySteps: {}, stepHistory: [], iconId: 'smile' }
 ];
 
 describe('HostAdminPanel Component', () => {
@@ -56,7 +56,7 @@ describe('HostAdminPanel Component', () => {
     expect(setIsAdmin).not.toHaveBeenCalled();
   });
 
-  it('unlocks with correct passcode AxGstepathon2026', () => {
+  it('unlocks with correct passcode STEPATHONADMIN2026', () => {
     const setIsAdmin = vi.fn();
     render(
       <HostAdminPanel
@@ -74,7 +74,7 @@ describe('HostAdminPanel Component', () => {
     const input = screen.getByPlaceholderText('Enter Passcode...');
     const button = screen.getByRole('button', { name: /unlock/i });
 
-    fireEvent.change(input, { target: { value: 'AxGstepathon2026' } });
+    fireEvent.change(input, { target: { value: 'STEPATHONADMIN2026' } });
     fireEvent.click(button);
 
     expect(setIsAdmin).toHaveBeenCalledWith(true);
@@ -99,7 +99,7 @@ describe('HostAdminPanel Component', () => {
     expect(screen.getByText('Create Team & Add All Members At Once')).toBeInTheDocument();
   });
 
-  it('allows adding and removing member inputs dynamically', () => {
+  it('allows adding up to 8 member inputs dynamically', () => {
     render(
       <HostAdminPanel
         teams={mockTeams}
@@ -118,14 +118,16 @@ describe('HostAdminPanel Component', () => {
     expect(screen.getByPlaceholderText('Member 5 Name...')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('Member 6 Name...')).not.toBeInTheDocument();
 
-    // Add Member Row
+    // Add Member Rows up to 8
     const addBtn = screen.getByText('Add Member Slot');
     fireEvent.click(addBtn);
+    fireEvent.click(addBtn);
+    fireEvent.click(addBtn);
 
-    expect(screen.getByPlaceholderText('Member 6 Name...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Member 8 Name...')).toBeInTheDocument();
   });
 
-  it('submits bulk creation form successfully and calls API handlers', async () => {
+  it('submits bulk creation form successfully and formats names as First L.', async () => {
     const onAddTeam = vi.fn().mockResolvedValue({ id: 'new-team-id', name: 'Manila Trailblazers' });
     const onAddParticipant = vi.fn();
 
@@ -158,8 +160,8 @@ describe('HostAdminPanel Component', () => {
     });
 
     expect(onAddParticipant).toHaveBeenCalledTimes(2);
-    expect(onAddParticipant).toHaveBeenNthCalledWith(1, 'Alice Smith', 'new-team-id', 'Manila Trailblazers', 'smile');
-    expect(onAddParticipant).toHaveBeenNthCalledWith(2, 'Bob Jones', 'new-team-id', 'Manila Trailblazers', 'smile');
+    expect(onAddParticipant).toHaveBeenNthCalledWith(1, 'Alice S.', 'new-team-id', 'Manila Trailblazers', 'smile');
+    expect(onAddParticipant).toHaveBeenNthCalledWith(2, 'Bob J.', 'new-team-id', 'Manila Trailblazers', 'smile');
   });
 
   it('submits multiple manual step overrides exceeding 30,000 steps with autocomplete search', async () => {
@@ -186,7 +188,7 @@ describe('HostAdminPanel Component', () => {
     fireEvent.change(searchInput, { target: { value: 'Alice' } });
 
     // Select participant from dropdown menu
-    const participantBtn = screen.getByRole('button', { name: /alice/i });
+    const participantBtn = screen.getByRole('button', { name: /alice s\./i });
     fireEvent.click(participantBtn);
 
     // Verify participant chip is shown

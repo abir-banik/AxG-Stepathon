@@ -1,5 +1,6 @@
 import { User, Team, AnnouncementBanner } from '../types';
-import { ACCENTURE_GLOBAL_OFFICES, EVENT_WEEKS } from '../constants';
+import { GLOBAL_OFFICES, EVENT_WEEKS } from '../constants';
+import { formatParticipantName } from './nameFormatter';
 
 /**
  * Escapes values for safe inclusion in CSV files.
@@ -30,7 +31,7 @@ export const downloadFile = (content: string, filename: string, mimeType: string
 
 const getOfficeDisplayName = (locationId?: string): string => {
   if (!locationId || locationId === 'na') return 'N/A';
-  const found = ACCENTURE_GLOBAL_OFFICES.find(o => o.id === locationId);
+  const found = GLOBAL_OFFICES.find(o => o.id === locationId);
   return found ? found.displayName : locationId;
 };
 
@@ -79,7 +80,7 @@ export const generateMasterRosterCSV = (users: User[], teams: Team[]): string =>
 
     return [
       index + 1,
-      escapeCSV(user.name),
+      escapeCSV(formatParticipantName(user.name)),
       escapeCSV(user.teamName || team?.name || 'Independent / Unassigned'),
       escapeCSV(officeName),
       ...weeklyStepCols,
@@ -121,9 +122,9 @@ export const generateTeamSummaryCSV = (users: User[], teams: Team[]): string => 
 
     const sortedMembers = [...members].sort((a, b) => (b.steps || 0) - (a.steps || 0));
     const topContributor = sortedMembers[0];
-    const topContributorName = topContributor ? topContributor.name : 'N/A';
+    const topContributorName = topContributor ? formatParticipantName(topContributor.name) : 'N/A';
     const topContributorSteps = topContributor ? (topContributor.steps || 0) : 0;
-    const memberRoster = members.map(m => m.name).join('; ');
+    const memberRoster = members.map(m => formatParticipantName(m.name)).join('; ');
 
     return {
       team,
@@ -197,7 +198,7 @@ export const generateDailyActivityLogCSV = (users: User[], teams: Team[]): strin
         entries.push({
           date: historyItem.date || 'N/A',
           week: historyItem.week || 1,
-          userName: user.name,
+          userName: formatParticipantName(user.name),
           teamName,
           officeName,
           steps,
@@ -235,7 +236,7 @@ export const generateRawJSONBackup = (users: User[], teams: Team[], announcement
   const totalEventSteps = users.reduce((sum, u) => sum + (u.steps || 0), 0);
   const payload = {
     exportedAt: new Date().toISOString(),
-    event: "2nd Annual Global Step-a-Thon",
+    event: "3rd Annual Global Stepathon",
     summary: {
       totalParticipants: users.length,
       totalTeams: teams.length,
@@ -243,7 +244,7 @@ export const generateRawJSONBackup = (users: User[], teams: Team[], announcement
       totalMiles: Number((totalEventSteps / 2000).toFixed(2))
     },
     teams,
-    users,
+    users: users.map(u => ({ ...u, name: formatParticipantName(u.name) })),
     announcement: announcement || null
   };
 

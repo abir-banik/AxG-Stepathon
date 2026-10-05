@@ -9,8 +9,10 @@ import {
   ChevronUp, 
   Search, 
   Sparkles,
-  Trophy
+  Trophy,
+  Users
 } from 'lucide-react';
+import WeeklyPhotoChallenge from './WeeklyPhotoChallenge';
 
 interface FaqItem {
   id: string;
@@ -26,12 +28,12 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'When does the Step-a-Thon take place?',
     answer: (
       <div className="space-y-2">
-        <p>The 2nd Annual Global Step-a-Thon key milestones are:</p>
+        <p>The 3rd Annual Global Stepathon key milestones are:</p>
         <ul className="list-disc list-inside space-y-1 text-gray-600 pl-2">
-          <li><strong className="text-gray-900">Sign-Up Window:</strong> July 6th – July 10th</li>
-          <li><strong className="text-gray-900">Stepping Challenge:</strong> July 13th – August 5th</li>
-          <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Tonight @ 12:00 AM PST / 3:00 AM EST</li>
-          <li><strong className="text-gray-900">Winners Reveal:</strong> People Day Extravaganza on Thursday, August 6th! 🏆</li>
+          <li><strong className="text-gray-900">Sign-Up Window:</strong> October 12th – October 16th</li>
+          <li><strong className="text-gray-900">Stepping Challenge:</strong> October 19th – November 17th (Weeks 1–5)</li>
+          <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Wednesday, November 18th @ Midnight PST</li>
+          <li><strong className="text-gray-900">Winners Reveal:</strong> Friday, November 20th! 🏆</li>
         </ul>
       </div>
     )
@@ -44,9 +46,9 @@ const FAQ_ITEMS: FaqItem[] = [
       <div className="space-y-2">
         <ol className="list-decimal list-inside space-y-1.5 text-gray-600">
           <li>Scroll down to the <strong className="text-gray-900">Roster & Daily Step Logger</strong> section on the main page.</li>
-          <li>Use the <strong className="text-gray-900">Filter by Team</strong> dropdown or <strong className="text-gray-900">Search Participant</strong> bar to locate your name.</li>
+          <li>Use the <strong className="text-gray-900">Filter by Team</strong> dropdown or <strong className="text-gray-900">Search Participant</strong> bar to locate your name (displayed as <em>First Name + Last Initial</em>, e.g., <strong>Jordan S.</strong>).</li>
           <li>Click your name avatar to open your personal Step Logging form.</li>
-          <li>Select the exact date of your steps between <strong className="text-gray-900">July 13th and August 5th</strong>. <em>(The Week 1–4 indicator updates automatically!)</em></li>
+          <li>Select the exact date of your steps between <strong className="text-gray-900">October 19th and November 17th</strong>. <em>(The Week 1–5 indicator updates automatically!)</em></li>
           <li>Type in your step count and click <strong className="text-gray-900">Log Steps</strong>. Your total and team standing update instantly!</li>
         </ol>
       </div>
@@ -59,13 +61,13 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-3">
         <p>
-          Log your steps by <strong className="text-gray-900">Monday 8:00 PM ET</strong> to count toward that week's Leaderboard standings and winner announcement!
+          Log your steps by <strong className="text-gray-900">Monday at Midnight PST (11:59 PM PST)</strong> each week to count toward that week's Leaderboard standings and weekly winner announcement! For the final week (Week 5), all steps must be logged by <strong className="text-gray-900">Wednesday, November 18th at Midnight PST</strong>.
         </p>
         <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-2 text-xs text-gray-700">
           <strong className="text-gray-900 block font-bold">💡 What this means for you:</strong>
           <ul className="space-y-1 pl-1">
-            <li>• <strong>Convert to your local time:</strong> Mon 5:00 PM PST (California) • Mon 9:00 PM ART (Argentina) • Tue 1:00 AM (Dublin) • Tue 5:30 AM IST (India) • Tue 8:00 AM (Manila).</li>
-            <li>• <strong>Late logs are never lost:</strong> Steps logged after 8:00 PM ET will still count <strong className="text-gray-900">100% toward your team's Overall Competition Total</strong>!</li>
+            <li>• <strong>Convert to your local time:</strong> Mon Midnight PST (California) • Tue 3:00 AM EST (New York) • Tue 4:00 AM ART (Argentina) • Tue 8:00 AM (Dublin) • Tue 1:30 PM IST (India) • Tue 4:00 PM MYT (Manila/Malaysia).</li>
+            <li>• <strong>Late logs are never lost:</strong> Steps logged after the weekly Monday Midnight PST cutoff will still count <strong className="text-gray-900">100% toward your team's Overall Competition Total</strong>!</li>
           </ul>
         </div>
       </div>
@@ -77,7 +79,7 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'What if I forget to log my steps on a specific day?',
     answer: (
       <p>
-        No problem at all! You don't have to log every single day in real-time. If you miss logging a day, simply use the date picker in your step logger to pick the prior date and add your steps. Just be sure all your steps are entered before the competition deadline <strong className="text-gray-900">tonight at 12:00 AM PST / 3:00 AM EST</strong>. Please double-check your step counts before submitting!
+        No problem at all! You don't have to log every single day in real-time. If you miss logging a day, simply use the date picker in your step logger to pick the prior date and add your steps. Just be sure all your steps are entered before the final competition deadline on <strong className="text-gray-900">Wednesday, November 18th at Midnight PST</strong>. Please double-check your step counts before submitting!
       </p>
     )
   },
@@ -88,10 +90,22 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-2">
         <p>
-          Yes! We run on the <strong>Honor System</strong> and trust everyone to report fairly, but we ask all participants to save daily screenshots or records from their fitness app (Apple Health, Fitbit, Google Fit, Garmin, Samsung Health, etc.).
+          Yes! We run on the <strong>Honor System</strong> and trust everyone to report fairly, with a <strong className="text-gray-900">30,000 daily step cap</strong> before verification is required. If you log <strong className="text-gray-900">30,000+ steps in a single day</strong>, please share a screenshot from your fitness app (Apple Health, Fitbit, Garmin, Samsung Health, etc.) in the group chat!
         </p>
         <p className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
           📌 <em>Note: Event hosts reserve the right to request step tracker screenshots for validation if needed.</em>
+        </p>
+      </div>
+    )
+  },
+  {
+    id: 'team-rules',
+    category: 'community',
+    question: 'How do teams and sign-ups work?',
+    answer: (
+      <div className="space-y-2">
+        <p>
+          You can register <strong className="text-gray-900">Solo</strong> (and the organizers will match you with a team) or form a <strong className="text-gray-900">Team of up to 8 members</strong> during the October 12 – October 16 sign-up window!
         </p>
       </div>
     )
@@ -110,11 +124,11 @@ const FAQ_ITEMS: FaqItem[] = [
           </li>
           <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
             <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Calendar size={14} className="text-[#34A853]" /> Weekly Leaderboard:</strong>
-            Breaks down performance by week (Week 1–4) so you can track weekly team leaders and week-over-week progress.
+            Breaks down performance by week (Week 1–5) so you can track weekly team leaders and week-over-week progress.
           </li>
           <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
             <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Sparkles size={14} className="text-[#FBBC05]" /> Individual Leaderboard:</strong>
-            Highlights the top individual steppers across the entire global event, milestone badges, and office locations!
+            Highlights the top individual steppers across the entire global event and milestone achievements!
           </li>
         </ul>
       </div>
@@ -127,7 +141,7 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-2">
         <p>
-          Join our global Teams chat channel: <strong className="text-[#4285F4]">🌍👟 Global Step-a-Thon</strong>! Use it to share photos, post daily milestones, and cheer each other on across the globe. We also encourage individual teams to set up group chats for extra motivation!
+          Join our global Teams chat channel: <strong className="text-[#4285F4]">🌍👟 Global Stepathon</strong>! Use it to share weekly photo challenge entries, post daily milestones, and cheer each other on across the globe. We also encourage individual teams to set up group chats for extra motivation!
         </p>
       </div>
     )
@@ -156,7 +170,7 @@ const FaqPage: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       {/* HEADER BANNER */}
       <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm relative overflow-hidden">
-        {/* Google 4-color Top Border Accent */}
+        {/* 4-color Top Border Accent */}
         <div className="absolute top-0 left-0 right-0 h-1.5 flex">
           <div className="h-full flex-1 bg-[#4285F4]" />
           <div className="h-full flex-1 bg-[#EA4335]" />
@@ -173,7 +187,7 @@ const FaqPage: React.FC = () => {
               Frequently Asked Questions
             </h2>
             <p className="text-gray-500 text-sm max-w-2xl">
-              Everything you need to know about event dates, logging steps, competition rules, and staying connected throughout the 2nd Annual Global Step-a-Thon.
+              Everything you need to know about event dates, logging steps, competition rules, and staying connected throughout the 3rd Annual Global Stepathon.
             </p>
           </div>
 
@@ -207,35 +221,38 @@ const FaqPage: React.FC = () => {
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
               <Calendar size={14} className="text-[#4285F4]" /> Sign-Up Window
             </div>
-            <div className="text-base font-extrabold text-gray-900">July 6 – July 10</div>
-            <p className="text-[11px] text-gray-400 font-medium">Team & Individual Registration</p>
+            <div className="text-base font-extrabold text-gray-900">October 12 – October 16</div>
+            <p className="text-[11px] text-gray-400 font-medium">Solo or Team (up to 8 members)</p>
           </div>
 
           <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold text-[#4285F4] uppercase">
               <Sparkles size={14} className="text-[#4285F4]" /> Challenge Duration
             </div>
-            <div className="text-base font-extrabold text-gray-900">July 13 – August 5</div>
-            <p className="text-[11px] text-blue-600 font-medium">3 Weeks of Global Stepping</p>
+            <div className="text-base font-extrabold text-gray-900">October 19 – November 20</div>
+            <p className="text-[11px] text-blue-600 font-medium">5 Weeks of Global Stepping</p>
           </div>
 
           <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-              <Clock size={14} className="text-[#EA4335]" /> Final Cutoff
+              <Clock size={14} className="text-[#EA4335]" /> Weekly & Final Cutoff
             </div>
-            <div className="text-base font-extrabold text-gray-900">Tonight @ 12 AM PST / 3 AM EST</div>
-            <p className="text-[11px] text-gray-400 font-medium">Step Logging Deadline</p>
+            <div className="text-base font-extrabold text-gray-900">Mondays @ Midnight PST</div>
+            <p className="text-[11px] text-gray-400 font-medium">Final Cutoff: Wed, Nov 18 @ Midnight PST</p>
           </div>
 
           <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100 space-y-1">
             <div className="flex items-center gap-2 text-xs font-bold text-amber-700 uppercase">
               <Trophy size={14} className="text-[#FBBC05]" /> Winners Reveal
             </div>
-            <div className="text-base font-extrabold text-gray-900">August 6th</div>
-            <p className="text-[11px] text-amber-700 font-medium">People Day Extravaganza</p>
+            <div className="text-base font-extrabold text-gray-900">November 20th</div>
+            <p className="text-[11px] text-amber-700 font-medium">Final Winners Announcement</p>
           </div>
         </div>
       </div>
+
+      {/* WEEKLY PHOTO CHALLENGE BANNER */}
+      <WeeklyPhotoChallenge />
 
       {/* FILTER TABS & SEARCH */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">

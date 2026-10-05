@@ -30,7 +30,7 @@ export const EventConcludedPage: React.FC<EventConcludedPageProps> = ({ onAdminU
 
         {/* Main Hero Thank You Card */}
         <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 text-center space-y-6 relative overflow-hidden">
-          {/* Subtle Background Google Colored Accents */}
+          {/* Subtle Background Colored Accents */}
           <div className="absolute -top-16 -right-16 w-40 h-40 bg-blue-50 rounded-full blur-2xl opacity-60 pointer-events-none" />
           <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-green-50 rounded-full blur-2xl opacity-60 pointer-events-none" />
 
