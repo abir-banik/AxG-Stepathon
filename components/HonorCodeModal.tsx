@@ -34,7 +34,7 @@ const HonorCodeModal: React.FC<HonorCodeModalProps> = ({ onAccept }) => {
             Stepathon Honor Policy
           </h2>
           <p className="text-xs text-gray-500 font-medium">
-            To keep the 3rd Annual Global Stepathon fun and fair for everyone, please review our quick rules:
+            To keep the 1st FY27 Global Stepathon fun and fair for everyone, please review our quick rules:
           </p>
         </div>
 
@@ -69,9 +69,9 @@ const HonorCodeModal: React.FC<HonorCodeModalProps> = ({ onAccept }) => {
               <Camera size={16} />
             </div>
             <div>
-              <h3 className="text-xs font-extrabold text-gray-900">30,000+ Daily Step Cap</h3>
+              <h3 className="text-xs font-extrabold text-gray-900">30,000+ Daily Step Cap (#bigstepper)</h3>
               <p className="text-[11px] text-gray-600 leading-snug">
-                Hit <strong>30,000+ steps</strong> in a day? Share a fitness app screenshot in the group chat!
+                Hit <strong>30,000+ steps</strong> in a day? You must send photo proof of your steps in the group chat with the hashtag <strong className="text-amber-900">#bigstepper</strong> and the <strong>amount of steps</strong> so we can easily track them!
               </p>
             </div>
           </div>

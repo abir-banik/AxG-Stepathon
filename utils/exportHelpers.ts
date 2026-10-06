@@ -236,7 +236,7 @@ export const generateRawJSONBackup = (users: User[], teams: Team[], announcement
   const totalEventSteps = users.reduce((sum, u) => sum + (u.steps || 0), 0);
   const payload = {
     exportedAt: new Date().toISOString(),
-    event: "3rd Annual Global Stepathon",
+    event: "1st FY27 Global Stepathon",
     summary: {
       totalParticipants: users.length,
       totalTeams: teams.length,

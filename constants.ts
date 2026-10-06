@@ -4,7 +4,7 @@ export const HOST_ADMIN_PASSCODE = 'STEPATHONADMIN2026'; // Host admin portal pa
 export const SITE_AUTH_STORAGE_KEY = 'stepathon_v3_site_auth';
 
 export const EVENT_START_DATE = '2026-10-19';
-export const EVENT_END_DATE = '2026-11-17';
+export const EVENT_END_DATE = '2026-11-18';
 
 export const GLOBAL_STEP_GOAL = 35000000; // 35,000,000 Global Step Target
 export const TOTAL_GOAL_STEPS = GLOBAL_STEP_GOAL;
@@ -14,7 +14,7 @@ export const MAX_USERS = 200;
 export const MAX_TEAM_MEMBERS = 8;
 export const MAX_PARTICIPANT_STEPS_PER_ENTRY = 30000;
 export const MAX_HOST_OVERRIDE_STEPS_PER_ENTRY = 200000;
-export const TOTAL_WEEKS = 5; // 5-Week Challenge (October 19 – November 17, 2026)
+export const TOTAL_WEEKS = 4; // 4-Week Challenge (October 19 – November 18, 2026)
 
 export interface WeekDefinition {
   weekNumber: number;
@@ -62,20 +62,10 @@ export const EVENT_WEEKS: WeekDefinition[] = [
     weekNumber: 4,
     label: "Week 4",
     startDate: "November 9",
-    endDate: "November 15",
-    shortRange: "Nov 9-15",
+    endDate: "November 18",
+    shortRange: "Nov 9-18",
     startIso: "2026-11-09",
-    endIso: "2026-11-15",
-    deadlineUtc: "2026-11-17T08:00:00.000Z" // Monday Nov 16 @ Midnight PST (3:00 AM EST)
-  },
-  {
-    weekNumber: 5,
-    label: "Week 5",
-    startDate: "November 16",
-    endDate: "November 17",
-    shortRange: "Nov 16-17",
-    startIso: "2026-11-16",
-    endIso: "2026-11-17",
+    endIso: "2026-11-18",
     deadlineUtc: "2026-11-19T08:00:00.000Z" // Wednesday Nov 18 @ Midnight PST (Final submission deadline)
   }
 ];

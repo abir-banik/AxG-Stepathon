@@ -55,7 +55,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
       alert("Steps can only be logged starting from October 19th, 2026.");
       finalDate = EVENT_START_DATE;
     } else if (val > EVENT_END_DATE) {
-      alert("Steps can only be logged up to November 17th, 2026.");
+      alert("Steps can only be logged up to November 18th, 2026.");
       finalDate = EVENT_END_DATE;
     } else if (val > todayStr) {
       alert("You can only log steps for today or a past date.");
@@ -92,7 +92,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
       const val = parseInt(stepInput, 10);
       if (val > 0) {
         if (val > MAX_PARTICIPANT_STEPS_PER_ENTRY) {
-          alert(`Maximum daily entry limit is ${MAX_PARTICIPANT_STEPS_PER_ENTRY.toLocaleString()} steps. For entries over 30,000 steps in a single day, please share a screenshot from your fitness app in the group chat!`);
+          alert(`Maximum daily entry limit is ${MAX_PARTICIPANT_STEPS_PER_ENTRY.toLocaleString()} steps. For 30,000+ steps in a single day, please send photo proof of your steps in the group chat with the hashtag #bigstepper and the amount of steps!`);
           return;
         }
         await onAddSteps(selectedUserId, val, selectedWeek, selectedDate);
@@ -173,7 +173,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                   min={EVENT_START_DATE}
                   max={EVENT_END_DATE}
                   className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
-                  title="Select date of steps (October 19 to November 17 only)"
+                  title="Select date of steps (October 19 to November 18 only)"
                 />
               </div>
 

@@ -111,7 +111,7 @@ describe('ParticipantStepLogger Component', () => {
     });
   });
 
-  it('automatically calculates week from date input across Weeks 1-5', async () => {
+  it('automatically calculates week from date input across Weeks 1-4', async () => {
     const onAddSteps = vi.fn();
     render(
       <ParticipantStepLogger
@@ -125,7 +125,7 @@ describe('ParticipantStepLogger Component', () => {
     // Click on Alice S.
     fireEvent.click(screen.getByText('Alice S.'));
 
-    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 17 only)');
+    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 18 only)');
     const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
 
     // Select date in Week 1 (October 19, 2026)
@@ -139,7 +139,7 @@ describe('ParticipantStepLogger Component', () => {
     });
   });
 
-  it('validates date picker only allows dates from October 19th to November 17th', () => {
+  it('validates date picker only allows dates from October 19th to November 18th', () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
     render(
@@ -155,22 +155,22 @@ describe('ParticipantStepLogger Component', () => {
     fireEvent.click(screen.getByText('Alice S.'));
 
     // Date picker input
-    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 17 only)') as HTMLInputElement;
+    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 18 only)') as HTMLInputElement;
 
     // Test date before October 19th
     fireEvent.change(dateInput, { target: { value: '2026-10-10' } });
     expect(alertMock).toHaveBeenCalledWith('Steps can only be logged starting from October 19th, 2026.');
     expect(dateInput.value).not.toBe('2026-10-10');
 
-    // Test date after November 17th
+    // Test date after November 18th
     fireEvent.change(dateInput, { target: { value: '2026-11-25' } });
-    expect(alertMock).toHaveBeenCalledWith('Steps can only be logged up to November 17th, 2026.');
+    expect(alertMock).toHaveBeenCalledWith('Steps can only be logged up to November 18th, 2026.');
     expect(dateInput.value).not.toBe('2026-11-25');
 
     alertMock.mockRestore();
   });
 
-  it('enforces the 30,000 daily step cap on participant submissions', () => {
+  it('enforces the 30,000 daily step cap on participant submissions with #bigstepper instructions', () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     const onAddSteps = vi.fn();
 
@@ -188,7 +188,7 @@ describe('ParticipantStepLogger Component', () => {
     fireEvent.change(stepInput, { target: { value: '35000' } });
     fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
 
-    expect(alertMock).toHaveBeenCalledWith(expect.stringContaining('Maximum daily entry limit is 30,000 steps'));
+    expect(alertMock).toHaveBeenCalledWith(expect.stringContaining('#bigstepper'));
     expect(onAddSteps).not.toHaveBeenCalled();
 
     alertMock.mockRestore();

@@ -92,7 +92,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-purple-100">
-              <Calendar size={14} /> 5-Week Challenge (October 19th – November 17th)
+              <Calendar size={14} /> 4-Week Challenge (October 19th – November 18th)
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Weekly Leaderboard</h2>
             <p className="text-purple-100 text-sm max-w-xl">
@@ -142,13 +142,13 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         <div className="space-y-2 flex-1">
           <div>
             <span className="font-extrabold text-purple-950 text-sm block">
-              {selectedWeekNum === 5
+              {selectedWeekNum === 4
                 ? '🕗 Final Challenge Deadline: Wednesday, Nov 18 @ Midnight PST'
                 : '🕗 Weekly Submission Deadline: Every Monday @ Midnight PST'}
             </span>
             <p className="text-purple-900 font-medium text-xs mt-0.5">
-              {selectedWeekNum === 5 ? (
-                <>Log all final steps by <strong>Wednesday, November 18 at Midnight PST</strong> to count toward final Week 5 & Overall Challenge standings! Please double-check your step counts to ensure all entries are recorded.</>
+              {selectedWeekNum === 4 ? (
+                <>Log all final steps by <strong>Wednesday, November 18 at Midnight PST</strong> to count toward final Week 4 & Overall Challenge standings! Please double-check your step counts to ensure all entries are recorded.</>
               ) : (
                 <>Log your steps by <strong>Monday at Midnight PST (11:59 PM PST)</strong> to count toward that week's Leaderboard standings and winner announcement!</>
               )}
@@ -162,7 +162,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
             <ul className="space-y-1 pl-1 text-purple-900 font-medium">
               <li>
                 • <strong>Convert to your local time:</strong>{' '}
-                {selectedWeekNum === 5
+                {selectedWeekNum === 4
                   ? 'Wed Midnight PST (California) • Thu 3:00 AM EST (New York) • Thu 4:00 AM ART (Argentina) • Thu 8:00 AM (Dublin) • Thu 1:30 PM IST (India) • Thu 4:00 PM MYT (Manila/Malaysia).'
                   : 'Mon Midnight PST (California) • Tue 3:00 AM EST (New York) • Tue 4:00 AM ART (Argentina) • Tue 8:00 AM (Dublin) • Tue 1:30 PM IST (India) • Tue 4:00 PM MYT (Manila/Malaysia).'}
               </li>

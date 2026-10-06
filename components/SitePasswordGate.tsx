@@ -46,8 +46,8 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ onUnlock }) => {
             <Footprints size={28} />
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            <span className="text-[#4285F4]">3rd</span>{" "}
-            <span className="text-[#EA4335]">Annual</span>{" "}
+            <span className="text-[#4285F4]">1st</span>{" "}
+            <span className="text-[#EA4335]">FY27</span>{" "}
             <span className="text-[#FBBC05]">Global</span>{" "}
             <span className="text-[#34A853]">Stepathon</span>
           </h1>

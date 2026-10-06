@@ -4,14 +4,16 @@ import { describe, it, expect, vi } from 'vitest';
 import HonorCodeModal from '../components/HonorCodeModal';
 
 describe('HonorCodeModal Component', () => {
-  it('renders the Stepathon Honor Policy title and all 4 rules', () => {
+  it('renders the Stepathon Honor Policy title, 1st FY27 branding, and #bigstepper rule', () => {
     render(<HonorCodeModal onAccept={vi.fn()} />);
 
     expect(screen.getByText('Stepathon Honor Policy')).toBeInTheDocument();
+    expect(screen.getByText(/1st FY27 Global Stepathon/i)).toBeInTheDocument();
     expect(screen.getByText('Log Honest Steps Only')).toBeInTheDocument();
     expect(screen.getByText('Only Update Your Own Profile')).toBeInTheDocument();
     expect(screen.getByText(/Never log, edit, or delete steps on anyone else's profile/i)).toBeInTheDocument();
-    expect(screen.getByText('30,000+ Daily Step Cap')).toBeInTheDocument();
+    expect(screen.getByText('30,000+ Daily Step Cap (#bigstepper)')).toBeInTheDocument();
+    expect(screen.getAllByText(/#bigstepper/i).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Keep Your Tracker Proof')).toBeInTheDocument();
   });
 

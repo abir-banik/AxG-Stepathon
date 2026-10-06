@@ -65,14 +65,14 @@ describe('Export Helpers Utility', () => {
     expect(escapeCSV(undefined)).toBe('');
   });
 
-  it('generates Master Participant Roster CSV with rankings, 5 weeks, and First L. names', () => {
+  it('generates Master Participant Roster CSV with rankings, 4 weeks, and First L. names', () => {
     const csv = generateMasterRosterCSV(mockUsers, mockTeams);
     const lines = csv.split('\n');
 
     // Header validation
     expect(lines[0]).toContain('Overall Rank,Participant Name,Team Name,Office Location');
     expect(lines[0]).toContain('Week 1 Steps (Oct 19-25)');
-    expect(lines[0]).toContain('Week 5 Steps (Nov 16-17)');
+    expect(lines[0]).toContain('Week 4 Steps (Nov 9-18)');
     expect(lines[0]).toContain('Total Cumulative Steps');
 
     // Top participant should be Charlie B. (30,000 steps)
@@ -129,7 +129,7 @@ describe('Export Helpers Utility', () => {
     const jsonStr = generateRawJSONBackup(mockUsers, mockTeams, mockAnnouncement);
     const parsed = JSON.parse(jsonStr);
 
-    expect(parsed.event).toBe('3rd Annual Global Stepathon');
+    expect(parsed.event).toBe('1st FY27 Global Stepathon');
     expect(parsed.summary.totalParticipants).toBe(3);
     expect(parsed.summary.totalTeams).toBe(2);
     expect(parsed.summary.totalSteps).toBe(70000); // 25k + 15k + 30k

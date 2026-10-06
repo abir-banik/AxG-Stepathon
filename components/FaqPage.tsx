@@ -4,13 +4,12 @@ import {
   Calendar, 
   Clock, 
   MessageSquare, 
-  Mail, 
   ChevronDown, 
   ChevronUp, 
   Search, 
   Sparkles,
   Trophy,
-  Users
+  ExternalLink
 } from 'lucide-react';
 import WeeklyPhotoChallenge from './WeeklyPhotoChallenge';
 
@@ -28,10 +27,10 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'When does the Step-a-Thon take place?',
     answer: (
       <div className="space-y-2">
-        <p>The 3rd Annual Global Stepathon key milestones are:</p>
+        <p>The 1st FY27 Global Stepathon key milestones are:</p>
         <ul className="list-disc list-inside space-y-1 text-gray-600 pl-2">
-          <li><strong className="text-gray-900">Sign-Up Window:</strong> October 12th – October 16th</li>
-          <li><strong className="text-gray-900">Stepping Challenge:</strong> October 19th – November 17th (Weeks 1–5)</li>
+          <li><strong className="text-gray-900">Sign-Up Window:</strong> October 7th – October 15th</li>
+          <li><strong className="text-gray-900">Stepping Challenge:</strong> October 19th – November 18th (Weeks 1–4)</li>
           <li><strong className="text-gray-900">Final Step Logging Deadline:</strong> Wednesday, November 18th @ Midnight PST</li>
           <li><strong className="text-gray-900">Winners Reveal:</strong> Friday, November 20th! 🏆</li>
         </ul>
@@ -48,7 +47,7 @@ const FAQ_ITEMS: FaqItem[] = [
           <li>Scroll down to the <strong className="text-gray-900">Roster & Daily Step Logger</strong> section on the main page.</li>
           <li>Use the <strong className="text-gray-900">Filter by Team</strong> dropdown or <strong className="text-gray-900">Search Participant</strong> bar to locate your name (displayed as <em>First Name + Last Initial</em>, e.g., <strong>Jordan S.</strong>).</li>
           <li>Click your name avatar to open your personal Step Logging form.</li>
-          <li>Select the exact date of your steps between <strong className="text-gray-900">October 19th and November 17th</strong>. <em>(The Week 1–5 indicator updates automatically!)</em></li>
+          <li>Select the exact date of your steps between <strong className="text-gray-900">October 19th and November 18th</strong>. <em>(The Week 1–4 indicator updates automatically!)</em></li>
           <li>Type in your step count and click <strong className="text-gray-900">Log Steps</strong>. Your total and team standing update instantly!</li>
         </ol>
       </div>
@@ -61,7 +60,7 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-3">
         <p>
-          Log your steps by <strong className="text-gray-900">Monday at Midnight PST (11:59 PM PST)</strong> each week to count toward that week's Leaderboard standings and weekly winner announcement! For the final week (Week 5), all steps must be logged by <strong className="text-gray-900">Wednesday, November 18th at Midnight PST</strong>.
+          Log your steps by <strong className="text-gray-900">Monday at Midnight PST (11:59 PM PST)</strong> each week to count toward that week's Leaderboard standings and weekly winner announcement! For the final week (Week 4: Nov 9 – Nov 18), all steps must be logged by <strong className="text-gray-900">Wednesday, November 18th at Midnight PST</strong>.
         </p>
         <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-2 text-xs text-gray-700">
           <strong className="text-gray-900 block font-bold">💡 What this means for you:</strong>
@@ -88,10 +87,16 @@ const FAQ_ITEMS: FaqItem[] = [
     category: 'rules',
     question: 'Do I need to save proof or screenshots of my step count?',
     answer: (
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <p>
-          Yes! We run on the <strong>Honor System</strong> and trust everyone to report fairly, with a <strong className="text-gray-900">30,000 daily step cap</strong> before verification is required. If you log <strong className="text-gray-900">30,000+ steps in a single day</strong>, please share a screenshot from your fitness app (Apple Health, Fitbit, Garmin, Samsung Health, etc.) in the group chat!
+          Yes! We run on the <strong>Honor System</strong> and trust everyone to report fairly, with a <strong className="text-gray-900">30,000 daily step cap</strong> on self-logged entries.
         </p>
+        <div className="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 text-xs text-amber-950 space-y-1">
+          <strong className="font-extrabold block">📸 30,000+ Daily Steps Rule (#bigstepper):</strong>
+          <p>
+            If you hit <strong>30,000+ steps in a single day</strong>, you must send photo proof of your steps from your fitness app (Apple Health, Fitbit, Garmin, Samsung Health, etc.) in the group chat with the hashtag <strong className="text-amber-900">#bigstepper</strong> and the <strong>amount of steps</strong> so we can easily track and log them!
+          </p>
+        </div>
         <p className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
           📌 <em>Note: Event hosts reserve the right to request step tracker screenshots for validation if needed.</em>
         </p>
@@ -105,7 +110,7 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-2">
         <p>
-          You can register <strong className="text-gray-900">Solo</strong> (and the organizers will match you with a team) or form a <strong className="text-gray-900">Team of up to 8 members</strong> during the October 12 – October 16 sign-up window!
+          You can register <strong className="text-gray-900">Solo</strong> (and the organizers will match you with a team) or form a <strong className="text-gray-900">Team of up to 8 members</strong> during the October 7 – October 15 sign-up window!
         </p>
       </div>
     )
@@ -124,7 +129,7 @@ const FAQ_ITEMS: FaqItem[] = [
           </li>
           <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
             <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Calendar size={14} className="text-[#34A853]" /> Weekly Leaderboard:</strong>
-            Breaks down performance by week (Week 1–5) so you can track weekly team leaders and week-over-week progress.
+            Breaks down performance by week (Week 1–4) so you can track weekly team leaders and week-over-week progress.
           </li>
           <li className="bg-gray-50 p-3 rounded-xl border border-gray-100">
             <strong className="text-gray-900 flex items-center gap-1.5 mb-0.5"><Sparkles size={14} className="text-[#FBBC05]" /> Individual Leaderboard:</strong>
@@ -141,7 +146,7 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: (
       <div className="space-y-2">
         <p>
-          Join our global Teams chat channel: <strong className="text-[#4285F4]">🌍👟 Global Stepathon</strong>! Use it to share weekly photo challenge entries, post daily milestones, and cheer each other on across the globe. We also encourage individual teams to set up group chats for extra motivation!
+          Join our global Teams chat channel: <strong className="text-[#4285F4]">🌍👟 Global Stepathon</strong>! Use it to share weekly photo challenge entries, post <strong className="text-gray-900">#bigstepper</strong> 30k+ step screenshots, and cheer each other on across the globe. We also encourage individual teams to set up group chats for extra motivation!
         </p>
       </div>
     )
@@ -149,7 +154,7 @@ const FAQ_ITEMS: FaqItem[] = [
 ];
 
 const FaqPage: React.FC = () => {
-  const [openItems, setOpenItems] = useState<string[]>(['dates-duration', 'how-to-log']);
+  const [openItems, setOpenItems] = useState<string[]>(['dates-duration', 'how-to-log', 'validation-proof']);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -187,7 +192,7 @@ const FaqPage: React.FC = () => {
               Frequently Asked Questions
             </h2>
             <p className="text-gray-500 text-sm max-w-2xl">
-              Everything you need to know about event dates, logging steps, competition rules, and staying connected throughout the 3rd Annual Global Stepathon.
+              Everything you need to know about event dates, logging steps, competition rules, and staying connected throughout the 1st FY27 Global Stepathon.
             </p>
           </div>
 
@@ -199,18 +204,7 @@ const FaqPage: React.FC = () => {
               className="bg-blue-50 hover:bg-blue-100 text-[#4285F4] px-4 py-2.5 rounded-2xl border border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-xs"
             >
               <Sparkles size={14} className="text-[#4285F4]" /> Give Site Feedback
-            </a>
-            <a 
-              href="mailto:Sydney.yap"
-              className="bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#4285F4] px-4 py-2.5 rounded-2xl border border-gray-200 hover:border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
-            >
-              <Mail size={14} className="text-[#4285F4]" /> Contact Sydney
-            </a>
-            <a 
-              href="mailto:a.banik"
-              className="bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#4285F4] px-4 py-2.5 rounded-2xl border border-gray-200 hover:border-blue-200 text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
-            >
-              <Mail size={14} className="text-[#34A853]" /> Contact Abir
+              <ExternalLink size={12} />
             </a>
           </div>
         </div>
@@ -221,7 +215,7 @@ const FaqPage: React.FC = () => {
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
               <Calendar size={14} className="text-[#4285F4]" /> Sign-Up Window
             </div>
-            <div className="text-base font-extrabold text-gray-900">October 12 – October 16</div>
+            <div className="text-base font-extrabold text-gray-900">October 7 – October 15</div>
             <p className="text-[11px] text-gray-400 font-medium">Solo or Team (up to 8 members)</p>
           </div>
 
@@ -230,7 +224,7 @@ const FaqPage: React.FC = () => {
               <Sparkles size={14} className="text-[#4285F4]" /> Challenge Duration
             </div>
             <div className="text-base font-extrabold text-gray-900">October 19 – November 20</div>
-            <p className="text-[11px] text-blue-600 font-medium">5 Weeks of Global Stepping</p>
+            <p className="text-[11px] text-blue-600 font-medium">4 Weeks of Global Stepping</p>
           </div>
 
           <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 space-y-1">
@@ -365,54 +359,31 @@ const FaqPage: React.FC = () => {
         )}
       </div>
 
-      {/* HOST CONTACT & SUPPORT CARDS */}
-      <div className="bg-gradient-to-br from-blue-900 to-indigo-950 text-white rounded-3xl p-6 md:p-8 shadow-md relative overflow-hidden space-y-6">
+      {/* EVENT SUPPORT & FEEDBACK CARD */}
+      <div className="bg-gradient-to-br from-blue-900 to-indigo-950 text-white rounded-3xl p-6 md:p-8 shadow-md relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="absolute right-0 top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="space-y-2">
+        <div className="space-y-2 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-blue-200 text-xs font-bold uppercase tracking-wider">
             <MessageSquare size={14} /> Event Support
           </div>
-          <h3 className="text-2xl font-extrabold tracking-tight">We're Here to Help! 👋</h3>
+          <h3 className="text-2xl font-extrabold tracking-tight">We&apos;re Here to Help! 👋</h3>
           <p className="text-blue-200 text-xs max-w-xl">
-            If you don't see your team listed, need help updating your entries, or have any questions, feel free to reach out to us anytime!
+            If you don&apos;t see your team listed, need help updating your entries, or have any questions or feedback, submit our form anytime!
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-          <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#4285F4] text-white flex items-center justify-center font-bold text-base shadow-sm">
-                SY
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-white">Sydney Yap</h4>
-              </div>
-            </div>
-            <a 
-              href="mailto:Sydney.yap" 
-              className="inline-flex items-center gap-2 text-xs font-bold text-white bg-white/20 hover:bg-white hover:text-gray-900 px-3.5 py-2.5 rounded-xl transition-all w-full justify-center shadow-sm"
-            >
-              <Mail size={14} /> Sydney.yap
-            </a>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#34A853] text-white flex items-center justify-center font-bold text-base shadow-sm">
-                AB
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-white">Abir Banik</h4>
-              </div>
-            </div>
-            <a 
-              href="mailto:a.banik" 
-              className="inline-flex items-center gap-2 text-xs font-bold text-white bg-white/20 hover:bg-white hover:text-gray-900 px-3.5 py-2.5 rounded-xl transition-all w-full justify-center shadow-sm"
-            >
-              <Mail size={14} /> a.banik
-            </a>
-          </div>
+        <div className="relative z-10 w-full sm:w-auto">
+          <a 
+            href="https://forms.office.com/r/Zg03YymPPq" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 text-xs font-extrabold text-gray-900 bg-white hover:bg-blue-50 px-5 py-3.5 rounded-2xl transition-all w-full sm:w-auto shadow-md"
+          >
+            <Sparkles size={15} className="text-[#4285F4]" />
+            <span>Open Support & Feedback Form</span>
+            <ExternalLink size={14} className="text-gray-500" />
+          </a>
         </div>
       </div>
     </div>

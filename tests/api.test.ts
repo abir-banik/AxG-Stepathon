@@ -22,8 +22,8 @@ describe('Centralized Event Config & Step Logic', () => {
     expect(IS_EVENT_CONCLUDED).toBe(false);
   });
 
-  it('computes week numbers dynamically from EVENT_WEEKS (5 weeks)', () => {
-    expect(EVENT_WEEKS.length).toBe(5);
+  it('computes week numbers dynamically from EVENT_WEEKS (4 weeks)', () => {
+    expect(EVENT_WEEKS.length).toBe(4);
     expect(computeWeekFromDate('')).toBe(1);
     expect(computeWeekFromDate('2026-10-19')).toBe(1);
     expect(computeWeekFromDate('2026-10-25')).toBe(1);
@@ -33,8 +33,8 @@ describe('Centralized Event Config & Step Logic', () => {
     expect(computeWeekFromDate('2026-11-08')).toBe(3);
     expect(computeWeekFromDate('2026-11-09')).toBe(4);
     expect(computeWeekFromDate('2026-11-15')).toBe(4);
-    expect(computeWeekFromDate('2026-11-16')).toBe(5);
-    expect(computeWeekFromDate('2026-11-17')).toBe(5);
+    expect(computeWeekFromDate('2026-11-16')).toBe(4);
+    expect(computeWeekFromDate('2026-11-18')).toBe(4);
     expect(Object.keys(WEEKLY_DEADLINES).length).toBe(EVENT_WEEKS.length);
   });
 
@@ -79,10 +79,10 @@ describe('Centralized Event Config & Step Logic', () => {
       return bypass || (entryDate >= EVENT_START_DATE && entryDate <= EVENT_END_DATE);
     };
 
-    expect(isAllowed('2026-11-17', false)).toBe(true);
-    expect(isAllowed('2026-11-18', false)).toBe(false);
+    expect(isAllowed('2026-11-18', false)).toBe(true);
+    expect(isAllowed('2026-11-19', false)).toBe(false);
     expect(isAllowed('2026-11-20', false)).toBe(false);
-    expect(isAllowed('2026-11-18', true)).toBe(true);
+    expect(isAllowed('2026-11-19', true)).toBe(true);
   });
 });
 

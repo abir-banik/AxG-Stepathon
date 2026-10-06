@@ -308,8 +308,8 @@ const App: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-wrap">
               <div>
                 <h1 className="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-1.5">
-                  <span className="text-[#4285F4]">3rd</span>{" "}
-                  <span className="text-[#EA4335]">Annual</span>{" "}
+                  <span className="text-[#4285F4]">1st</span>{" "}
+                  <span className="text-[#EA4335]">FY27</span>{" "}
                   <span className="text-[#FBBC05]">Global</span>{" "}
                   <span className="text-[#34A853]">Stepathon</span>
                 </h1>

@@ -38,11 +38,11 @@ describe('EventConcludedPage Component', () => {
     expect(feedbackLink).toHaveAttribute('target', '_blank');
   });
 
-  it('renders footer message anticipating the 3rd annual stepathon and supports onAdminUnlock', () => {
+  it('renders footer message anticipating the 1st FY27 global stepathon and supports onAdminUnlock', () => {
     const onUnlock = vi.fn();
     render(<EventConcludedPage onAdminUnlock={onUnlock} />);
 
-    expect(screen.getByText(/See you at the 3rd Annual Global Stepathon!/i)).toBeInTheDocument();
+    expect(screen.getByText(/See you at the 1st FY27 Global Stepathon!/i)).toBeInTheDocument();
     const archiveButton = screen.getByRole('button', { name: /View Archive Leaderboards/i });
     fireEvent.click(archiveButton);
     expect(onUnlock).toHaveBeenCalledTimes(1);

@@ -43,12 +43,13 @@ const mockTeams: Team[] = [
 ];
 
 describe('WeeklyLeaderboardPage component', () => {
-  it('renders correctly with 5-week schedule buttons', () => {
+  it('renders correctly with 4-week schedule buttons', () => {
     render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} />);
     expect(screen.getByText('Weekly Leaderboard')).toBeInTheDocument();
-    expect(screen.getByText(/5-Week Challenge \(October 19th – November 17th\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/4-Week Challenge \(October 19th – November 18th\)/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Week 1/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Week 5/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Week 4/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Week 5/i })).not.toBeInTheDocument();
   });
 
   it('calculates individual weekly stats correctly and formats names as First L.', () => {
