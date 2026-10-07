@@ -16,7 +16,7 @@ import EventConcludedPage from './components/EventConcludedPage';
 import SitePasswordGate from './components/SitePasswordGate';
 import HonorCodeModal from './components/HonorCodeModal';
 import stepathonBanner from './image.png';
-import { CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle, Lock } from 'lucide-react';
+import { CloudOff, CloudLightning, RefreshCw, AlertTriangle, Loader2, Award, Trophy, LayoutDashboard, Calendar, HelpCircle, Lock, Footprints } from 'lucide-react';
 import { api } from './api';
 
 const App: React.FC = () => {
@@ -147,6 +147,18 @@ const App: React.FC = () => {
     else if (tab === 'individuals') window.location.hash = '/individuals';
     else if (tab === 'faq') window.location.hash = '/faq';
     else window.location.hash = '/';
+  };
+
+  const handleJumpToStepLogger = () => {
+    if (activeTab !== 'dashboard') {
+      navigateToTab('dashboard');
+    }
+    setTimeout(() => {
+      const el = document.getElementById('step-logger-section');
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
   };
 
   // Handlers
@@ -328,6 +340,15 @@ const App: React.FC = () => {
             </div>
             
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+              {/* Quick Jump CTA: Log My Steps */}
+              <button
+                type="button"
+                onClick={handleJumpToStepLogger}
+                className="bg-[#4285F4] hover:bg-blue-600 text-white px-4 py-2 rounded-2xl text-xs font-extrabold transition-all shadow-sm hover:shadow-md flex items-center gap-1.5 cursor-pointer"
+              >
+                <Footprints size={14} /> Log My Steps
+              </button>
+
               {/* Unit Preference Toggle (Miles vs Kilometers) */}
               <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl border border-gray-200">
                 <button
@@ -394,11 +415,11 @@ const App: React.FC = () => {
         {/* EVENT ANNOUNCEMENT BANNER */}
         <AnnouncementBannerView announcement={announcement} />
 
-        {/* MULTI-PAGE NAVIGATION TABS (GitHub Pages & SPA compatible) */}
-        <nav className="flex flex-col sm:flex-row bg-white p-2 rounded-2xl border border-gray-100 shadow-sm gap-2">
+        {/* MULTI-PAGE NAVIGATION TABS (Compact 2-Col Grid on Mobile, Flex Row on Desktop) */}
+        <nav className="grid grid-cols-2 sm:flex sm:flex-row bg-white p-2 rounded-2xl border border-gray-100 shadow-sm gap-2">
           <button
             onClick={() => navigateToTab('dashboard')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+            className={`col-span-2 sm:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
               activeTab === 'dashboard'
                 ? 'bg-[#4285F4] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -409,7 +430,7 @@ const App: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('weekly')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+            className={`sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               activeTab === 'weekly'
                 ? 'bg-[#4285F4] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -420,7 +441,7 @@ const App: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('teams')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+            className={`sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               activeTab === 'teams'
                 ? 'bg-[#4285F4] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -431,7 +452,7 @@ const App: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('individuals')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+            className={`sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               activeTab === 'individuals'
                 ? 'bg-[#4285F4] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -442,7 +463,7 @@ const App: React.FC = () => {
 
           <button
             onClick={() => navigateToTab('faq')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+            className={`sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               activeTab === 'faq'
                 ? 'bg-[#4285F4] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -455,24 +476,13 @@ const App: React.FC = () => {
         {/* TAB 1: RACE DASHBOARD */}
         {activeTab === 'dashboard' && (
           <div className="space-y-8 animate-fade-in">
-            {/* Host & Admin Panel */}
-            <HostAdminPanel
-              teams={teams}
-              users={users}
-              announcement={announcement}
-              onAddTeam={handleAddTeam}
-              onDeleteTeam={handleDeleteTeam}
-              onAddParticipant={handleAddParticipant}
-              onRemoveParticipant={handleRemoveParticipant}
-              onAddSteps={handleAddSteps}
-              onHealData={api.healAllRacerData}
-              onUpdateAnnouncement={handleUpdateAnnouncement}
-              isAdmin={isAdmin}
-              setIsAdmin={setIsAdmin}
-            />
-
             {/* Stats Dashboard */}
-            <DashboardStats totalSteps={totalSteps} activeUserCount={users.length} distanceUnit={distanceUnit} />
+            <DashboardStats
+              totalSteps={totalSteps}
+              activeUserCount={users.length}
+              teamCount={teams.length}
+              distanceUnit={distanceUnit}
+            />
 
             {/* 35M Global Step Goal Progress Bar */}
             <GlobalOfficeMap teams={teams} users={users} distanceUnit={distanceUnit} />
@@ -487,6 +497,22 @@ const App: React.FC = () => {
               onAddSteps={handleAddSteps}
               onDeleteStep={handleDeleteStep}
               distanceUnit={distanceUnit}
+            />
+
+            {/* Host & Admin Panel (Placed at bottom so steppers aren't greeted by an admin login bar first) */}
+            <HostAdminPanel
+              teams={teams}
+              users={users}
+              announcement={announcement}
+              onAddTeam={handleAddTeam}
+              onDeleteTeam={handleDeleteTeam}
+              onAddParticipant={handleAddParticipant}
+              onRemoveParticipant={handleRemoveParticipant}
+              onAddSteps={handleAddSteps}
+              onHealData={api.healAllRacerData}
+              onUpdateAnnouncement={handleUpdateAnnouncement}
+              isAdmin={isAdmin}
+              setIsAdmin={setIsAdmin}
             />
           </div>
         )}
@@ -526,15 +552,17 @@ const App: React.FC = () => {
 
            <p className="font-medium text-gray-500 text-xs">© 2026 Inclusion & Diversity + Care • Stepathon</p>
            
-           {/* Danger Zone */}
-           <button 
-             onClick={handleResetRace}
-             disabled={isResetting}
-             className="text-red-200 hover:text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors disabled:opacity-50 disabled:cursor-wait"
-           >
-             {isResetting ? <Loader2 size={12} className="animate-spin" /> : <AlertTriangle size={12} />}
-             {isResetting ? 'Wiping Data...' : 'Admin Reset'}
-           </button>
+           {/* Danger Zone (Only visible when Host Admin is unlocked) */}
+           {isAdmin && (
+             <button 
+               onClick={handleResetRace}
+               disabled={isResetting}
+               className="text-red-400 hover:text-red-600 hover:bg-red-50 px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors disabled:opacity-50 disabled:cursor-wait"
+             >
+               {isResetting ? <Loader2 size={12} className="animate-spin" /> : <AlertTriangle size={12} />}
+               {isResetting ? 'Wiping Data...' : 'Admin Reset'}
+             </button>
+           )}
         </footer>
 
         {/* FLOATING FEEDBACK PILL (Option 1 - Bottom Right) */}

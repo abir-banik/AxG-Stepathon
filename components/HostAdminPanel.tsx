@@ -3,6 +3,8 @@ import { Team, User, AnnouncementBanner } from '../types';
 import {
   GLOBAL_OFFICES,
   EVENT_WEEKS,
+  EVENT_START_DATE,
+  EVENT_END_DATE,
   HOST_ADMIN_PASSCODE,
   MAX_TEAM_MEMBERS,
   MAX_HOST_OVERRIDE_STEPS_PER_ENTRY,
@@ -88,10 +90,11 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
   const createInitialOverrideRow = (): OverrideEntryRow => {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const clampedDate = todayStr < EVENT_START_DATE ? EVENT_START_DATE : (todayStr > EVENT_END_DATE ? EVENT_END_DATE : todayStr);
     return {
       id: `override-row-${Math.random()}`,
-      date: todayStr,
-      week: computeWeekFromDate(todayStr),
+      date: clampedDate,
+      week: computeWeekFromDate(clampedDate),
       steps: ''
     };
   };
@@ -415,7 +418,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                 <FileSpreadsheet size={16} className="text-emerald-600 flex-shrink-0" /> Master Roster (CSV)
               </div>
               <p className="text-[11px] text-gray-500 mt-1">
-                Individual rankings, Week 1–5 step totals, miles, km, and active days logged.
+                Individual rankings, Week 1–4 step totals, miles, km, and active days logged.
               </p>
             </div>
             <button
@@ -808,6 +811,8 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
                       <input
                         type="date"
                         value={row.date}
+                        min={EVENT_START_DATE}
+                        max={EVENT_END_DATE}
                         onChange={(e) => handleOverrideRowChange(rowIdx, 'date', e.target.value)}
                         className="w-full bg-gray-50/70 border border-gray-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500 outline-none font-medium shadow-2xs"
                         required

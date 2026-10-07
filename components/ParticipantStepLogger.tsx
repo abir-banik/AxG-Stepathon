@@ -36,6 +36,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
   // Form States
   const [stepInput, setStepInput] = useState('');
+  const [stepSavedMessage, setStepSavedMessage] = useState<string | null>(null);
   const getLocalTodayStr = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -86,21 +87,6 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
   const selectedUser = users.find(u => u.id === selectedUserId);
 
-  const handleStepSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedUserId && stepInput) {
-      const val = parseInt(stepInput, 10);
-      if (val > 0) {
-        if (val > MAX_PARTICIPANT_STEPS_PER_ENTRY) {
-          alert(`Maximum daily entry limit is ${MAX_PARTICIPANT_STEPS_PER_ENTRY.toLocaleString()} steps. For 30,000+ steps in a single day, please send photo proof of your steps in the group chat with the hashtag #bigstepper and the amount of steps!`);
-          return;
-        }
-        await onAddSteps(selectedUserId, val, selectedWeek, selectedDate);
-        setStepInput('');
-      }
-    }
-  };
-
   const formatEntryDate = (dateStr: string) => {
     if (!dateStr) return '';
     const datePart = dateStr.substring(0, 10);
@@ -113,8 +99,28 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
+  const handleStepSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedUserId && stepInput) {
+      const val = parseInt(stepInput, 10);
+      if (val > 0) {
+        if (val > MAX_PARTICIPANT_STEPS_PER_ENTRY) {
+          alert(`Maximum daily entry limit is ${MAX_PARTICIPANT_STEPS_PER_ENTRY.toLocaleString()} steps. For 30,000+ steps in a single day, please send photo proof of your steps in the group chat with the hashtag #bigstepper and the amount of steps!`);
+          return;
+        }
+        await onAddSteps(selectedUserId, val, selectedWeek, selectedDate);
+        const formattedDate = formatEntryDate(selectedDate);
+        setStepSavedMessage(`Saved! Logged ${val.toLocaleString()} steps for ${formattedDate} (Week ${selectedWeek}).`);
+        setStepInput('');
+        setTimeout(() => {
+          setStepSavedMessage(null);
+        }, 4000);
+      }
+    }
+  };
+
   return (
-    <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm mt-8 space-y-6">
+    <div id="step-logger-section" className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm mt-8 space-y-6 scroll-mt-6">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
@@ -127,7 +133,10 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
         {selectedUserId && (
           <button
-            onClick={() => setSelectedUserId(null)}
+            onClick={() => {
+              setSelectedUserId(null);
+              setStepSavedMessage(null);
+            }}
             className="flex items-center gap-2 text-gray-600 hover:text-red-500 bg-gray-100 px-4 py-2 rounded-full text-sm font-medium transition-colors"
           >
             <X size={16} /> Switch Participant
@@ -161,41 +170,75 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
             </div>
           </div>
 
+          {/* Step Submission Confirmation Toast Banner */}
+          {stepSavedMessage && (
+            <div
+              role="status"
+              className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-between gap-2 shadow-2xs animate-fade-in"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-[#34A853] text-white flex items-center justify-center shrink-0">
+                  <Check size={12} />
+                </span>
+                <span>{stepSavedMessage}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStepSavedMessage(null)}
+                className="text-emerald-600 hover:text-emerald-900 p-1 rounded"
+                aria-label="Dismiss confirmation"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleStepSubmit} className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               {/* Date Picker (First) */}
               <div className="relative">
+                <label className="block text-[10px] font-extrabold text-blue-900/70 uppercase tracking-wider mb-1">
+                  1. Date of Steps
+                </label>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={handleDateChange}
                   min={EVENT_START_DATE}
                   max={EVENT_END_DATE}
-                  className="h-full bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
+                  className="w-full sm:w-auto bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl px-3.5 py-3.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer"
                   title="Select date of steps (October 19 to November 18 only)"
                 />
               </div>
 
               {/* Week Display (Auto-computed, Disabled) */}
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Calendar size={18} className="text-gray-400" />
+                <label className="block text-[10px] font-extrabold text-blue-900/70 uppercase tracking-wider mb-1">
+                  2. Auto-Week
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Calendar size={18} className="text-gray-400" />
+                  </div>
+                  <select
+                    value={selectedWeek}
+                    disabled
+                    className="w-full sm:w-auto bg-gray-100 border border-gray-200 text-gray-500 text-sm font-bold rounded-xl pl-10 pr-8 py-3.5 outline-none shadow-sm cursor-not-allowed appearance-none"
+                    title="Week is automatically calculated based on selected date"
+                  >
+                    {weeksArray.map(w => (
+                      <option key={w} value={w}>Week {w}</option>
+                    ))}
+                  </select>
                 </div>
-                <select
-                  value={selectedWeek}
-                  disabled
-                  className="h-full bg-gray-100 border border-gray-200 text-gray-500 text-sm font-bold rounded-xl pl-10 pr-8 py-3.5 outline-none shadow-sm cursor-not-allowed appearance-none"
-                  title="Week is automatically calculated based on selected date"
-                >
-                  {weeksArray.map(w => (
-                    <option key={w} value={w}>Week {w}</option>
-                  ))}
-                </select>
               </div>
 
               {/* Step Input */}
               <div className="flex-1 relative">
+                <label className="block text-[10px] font-extrabold text-blue-900/70 uppercase tracking-wider mb-1">
+                  3. Daily Step Count (Max 30k)
+                </label>
                 <input
                   type="number"
                   value={stepInput}
@@ -211,7 +254,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
               {/* Submit */}
               <button
                 type="submit"
-                className="bg-[#4285F4] hover:bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
+                className="bg-[#4285F4] hover:bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2 sm:h-[52px]"
               >
                 <Check size={20} /> Log Steps
               </button>
@@ -349,9 +392,11 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
           {/* PARTICIPANT CARDS */}
           {filteredUsers.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <p>No pre-assigned participants found.</p>
-              <p className="text-xs text-gray-400 mt-1">If you don't see your name, ask your event host to add you to a team!</p>
+            <div className="py-12 px-6 text-center text-gray-500 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-2">
+              <p className="font-bold text-gray-700">No pre-assigned participants found.</p>
+              <p className="text-xs text-gray-500 max-w-lg mx-auto">
+                Sign-Up Window is <strong>October 7 – October 15, 2026</strong> (Challenge kicks off <strong>October 19</strong>). If you don't see your name yet, your event host will add you to a team before the race begins!
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">

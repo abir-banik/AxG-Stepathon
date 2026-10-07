@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { User, Team } from '../types';
-import { EVENT_WEEKS, WEEKLY_DEADLINES } from '../constants';
+import {
+  EVENT_WEEKS,
+  WEEKLY_DEADLINES,
+  EVENT_START_DATE,
+  EVENT_END_DATE,
+  computeWeekFromDate
+} from '../constants';
 import { formatParticipantName } from '../utils/nameFormatter';
 import { Calendar, Trophy, Award, Crown, Clock } from 'lucide-react';
 
@@ -8,6 +14,7 @@ interface WeeklyLeaderboardPageProps {
   users: User[];
   teams: Team[];
   distanceUnit?: 'mi' | 'km';
+  referenceDateStr?: string;
 }
 
 const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
@@ -28,8 +35,22 @@ const calculateValidWeeklySteps = (user: User, weekNum: number): number => {
   return validEntries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 };
 
-const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, teams, distanceUnit = 'mi' }) => {
-  const [selectedWeekNum, setSelectedWeekNum] = useState<number>(1);
+const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({
+  users,
+  teams,
+  distanceUnit = 'mi',
+  referenceDateStr
+}) => {
+  const getActiveDateStr = () => {
+    if (referenceDateStr) return referenceDateStr.substring(0, 10);
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  };
+  const activeDateStr = getActiveDateStr();
+  const isCompetitionLive = activeDateStr >= EVENT_START_DATE && activeDateStr <= EVENT_END_DATE;
+  const liveWeekNum = computeWeekFromDate(activeDateStr);
+
+  const [selectedWeekNum, setSelectedWeekNum] = useState<number>(() => liveWeekNum);
   const isKm = distanceUnit === 'km';
 
   const currentWeekInfo = EVENT_WEEKS.find(w => w.weekNumber === selectedWeekNum) || EVENT_WEEKS[0];
@@ -116,6 +137,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
         <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
           {EVENT_WEEKS.map(w => {
             const isSelected = w.weekNumber === selectedWeekNum;
+            const isCurrentActiveWeek = isCompetitionLive && w.weekNumber === liveWeekNum;
             return (
               <button
                 key={w.weekNumber}
@@ -126,7 +148,14 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({ users, te
                     : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                 }`}
               >
-                <span>{w.label}</span>
+                <span className="flex items-center justify-center gap-1">
+                  <span>{w.label}</span>
+                  {isCurrentActiveWeek && (
+                    <span className={`text-[10px] font-extrabold ${isSelected ? 'text-amber-300' : 'text-purple-600'}`}>
+                      • Current
+                    </span>
+                  )}
+                </span>
                 <span className="block text-[10px] opacity-80 font-normal">{w.startDate} - {w.endDate}</span>
               </button>
             );

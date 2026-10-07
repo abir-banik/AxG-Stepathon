@@ -111,4 +111,22 @@ describe('WeeklyLeaderboardPage component', () => {
     expect(screen.getAllByText('5,000')[0]).toBeInTheDocument();
     expect(screen.queryByText('15,000')).not.toBeInTheDocument();
   });
+
+  it('smartly defaults to the active week and displays a Current indicator during the live competition (Upgrade 5)', () => {
+    render(
+      <WeeklyLeaderboardPage
+        users={mockUsers}
+        teams={mockTeams}
+        distanceUnit="mi"
+        referenceDateStr="2026-10-28"
+      />
+    );
+
+    // Oct 28, 2026 is in Week 2 (Oct 26 – Nov 1)
+    expect(screen.getByText('• Current')).toBeInTheDocument();
+    // Week 2 Alice S. has 5,000 steps; Bob J. has 0 steps in Week 2 so Bob J. should not appear by default
+    expect(screen.getByText('Alice S.')).toBeInTheDocument();
+    expect(screen.queryByText('Bob J.')).not.toBeInTheDocument();
+  });
 });
+

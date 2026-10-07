@@ -2,6 +2,28 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';
 
+const localStorageStore: Record<string, string> = {};
+const localStorageMock = {
+  getItem: (key: string) => (key in localStorageStore ? localStorageStore[key] : null),
+  setItem: (key: string, value: string) => {
+    localStorageStore[key] = String(value);
+  },
+  removeItem: (key: string) => {
+    delete localStorageStore[key];
+  },
+  clear: () => {
+    Object.keys(localStorageStore).forEach(k => delete localStorageStore[k]);
+  }
+};
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+});
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+});
+
 // Mock Leaflet
 vi.mock('leaflet', () => {
   const L = {
@@ -65,9 +87,9 @@ vi.mock('firebase/firestore', () => {
     increment: vi.fn((val) => val),
     arrayUnion: vi.fn((val) => [val]),
     onSnapshot: vi.fn((q, cb, errCb) => {
-      // Trigger callback with empty docs initial state
+      // Trigger callback with empty docs/document initial state
       setTimeout(() => {
-        if (cb) cb({ docs: [] });
+        if (cb) cb({ docs: [], exists: () => false, data: () => null });
       }, 0);
       return vi.fn(); // unsubscribe mock
     }),

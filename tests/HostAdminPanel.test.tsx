@@ -261,4 +261,34 @@ describe('HostAdminPanel Component', () => {
     fireEvent.click(downloadJsonBtn);
     expect(screen.getByText('Downloaded JSON!')).toBeInTheDocument();
   });
+
+  it('clamps Host Override initial date within [EVENT_START_DATE, EVENT_END_DATE] and displays Week 1–4 in Master Roster export card (Upgrade 6)', () => {
+    render(
+      <HostAdminPanel
+        teams={mockTeams}
+        users={mockUsers}
+        onAddTeam={vi.fn()}
+        onDeleteTeam={vi.fn()}
+        onAddParticipant={vi.fn()}
+        onRemoveParticipant={vi.fn()}
+        onAddSteps={vi.fn()}
+        isAdmin={true}
+        setIsAdmin={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Week 1–4 step totals/i)).toBeInTheDocument();
+
+    // Select Alice to reveal override date input
+    const searchInput = screen.getByPlaceholderText('Type participant name or team (e.g. Alice)...');
+    fireEvent.change(searchInput, { target: { value: 'Alice' } });
+    fireEvent.click(screen.getByRole('button', { name: /alice s\./i }));
+
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    expect(dateInput).not.toBeNull();
+    expect(dateInput.min).toBe('2026-10-19');
+    expect(dateInput.max).toBe('2026-11-18');
+    expect(dateInput.value >= '2026-10-19' && dateInput.value <= '2026-11-18').toBe(true);
+  });
 });
+

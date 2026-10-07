@@ -95,7 +95,7 @@ const TeamLeaderboardPage: React.FC<TeamLeaderboardPageProps> = ({ teams, users,
           </div>
           <h3 className="text-xl font-bold text-gray-800">No Teams Formed Yet</h3>
           <p className="text-gray-500 text-sm max-w-md mx-auto">
-            The event host hasn't created any teams yet. Check back once teams are configured in the Host Admin Portal!
+            Sign-Up Window is <strong>October 7 – October 15, 2026</strong> (up to 8 members per team), and the challenge kicks off <strong>October 19</strong>! Check back once teams are configured by the event host.
           </p>
         </div>
       ) : (

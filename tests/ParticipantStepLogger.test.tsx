@@ -313,4 +313,47 @@ describe('ParticipantStepLogger Component', () => {
     expect(screen.getByText('Current Kilometers:')).toBeInTheDocument();
     expect(screen.getByText('8.0 km')).toBeInTheDocument();
   });
+
+  it('displays form input micro-labels and a confirmation toast banner after submitting steps (Upgrade 4)', async () => {
+    const onAddSteps = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ParticipantStepLogger
+        users={mockUsers}
+        teams={mockTeams}
+        onAddSteps={onAddSteps}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Alice S.'));
+
+    // Micro-labels above form inputs
+    expect(screen.getByText('1. Date of Steps')).toBeInTheDocument();
+    expect(screen.getByText('2. Auto-Week')).toBeInTheDocument();
+    expect(screen.getByText('3. Daily Step Count (Max 30k)')).toBeInTheDocument();
+
+    // Submit 7,500 steps
+    const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
+    fireEvent.change(stepInput, { target: { value: '7500' } });
+    fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/Saved! Logged 7,500 steps/i);
+    });
+  });
+
+  it('displays the Sign-Up Window (October 7 – October 15, 2026) callout when no participants are found (Upgrade 6)', () => {
+    render(
+      <ParticipantStepLogger
+        users={[]}
+        teams={mockTeams}
+        onAddSteps={vi.fn()}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('No pre-assigned participants found.')).toBeInTheDocument();
+    expect(screen.getByText(/October 7 – October 15, 2026/i)).toBeInTheDocument();
+  });
 });
+
