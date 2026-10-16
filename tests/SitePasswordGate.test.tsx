@@ -24,25 +24,26 @@ describe('SitePasswordGate Component', () => {
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  it('unlocks in participant mode when STEPATHON2026 is entered', () => {
+  it('unlocks in participant mode when Stepathon2027 is entered (case-insensitive)', () => {
     const onUnlock = vi.fn();
     render(<SitePasswordGate onUnlock={onUnlock} />);
 
     const input = screen.getByPlaceholderText('Enter event password...');
-    fireEvent.change(input, { target: { value: 'STEPATHON2026' } });
+    fireEvent.change(input, { target: { value: 'Stepathon2027' } });
     fireEvent.submit(screen.getByRole('button', { name: /Enter Stepathon/i }).closest('form')!);
 
     expect(onUnlock).toHaveBeenCalledWith(false);
   });
 
-  it('unlocks in admin mode when host admin passcode is entered', () => {
+  it('unlocks in admin mode when host admin passcode StepathonAdmin2027?! is entered', () => {
     const onUnlock = vi.fn();
     render(<SitePasswordGate onUnlock={onUnlock} />);
 
     const input = screen.getByPlaceholderText('Enter event password...');
-    fireEvent.change(input, { target: { value: 'STEPATHONADMIN2026' } });
+    fireEvent.change(input, { target: { value: 'StepathonAdmin2027?!' } });
     fireEvent.submit(screen.getByRole('button', { name: /Enter Stepathon/i }).closest('form')!);
 
     expect(onUnlock).toHaveBeenCalledWith(true);
   });
 });
+

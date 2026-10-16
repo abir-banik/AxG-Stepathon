@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import App from '../App';
-import { SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD } from '../constants';
+import { SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD_HASH } from '../constants';
 
 describe('App Layout Hierarchy, Mobile Nav, & Admin Reset Security (Upgrades 1, 7, 8)', () => {
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('App Layout Hierarchy, Mobile Nav, & Admin Reset Security (Upgrades 1, 
 
   it('hides Admin Reset button for regular participants and shows it only when Host Admin is unlocked (Upgrade 8)', () => {
     // Unlock as regular participant
-    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD);
+    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD_HASH);
     render(<App />);
 
     // Accept Honor Code Modal
@@ -21,9 +21,9 @@ describe('App Layout Hierarchy, Mobile Nav, & Admin Reset Security (Upgrades 1, 
     // Regular participant should NOT see Admin Reset button in footer
     expect(screen.queryByRole('button', { name: /Admin Reset/i })).not.toBeInTheDocument();
 
-    // Unlock Host Admin Panel with STEPATHONADMIN2026
+    // Unlock Host Admin Panel with StepathonAdmin2027?!
     const adminPassInput = screen.getByPlaceholderText('Enter Passcode...');
-    fireEvent.change(adminPassInput, { target: { value: 'STEPATHONADMIN2026' } });
+    fireEvent.change(adminPassInput, { target: { value: 'StepathonAdmin2027?!' } });
     fireEvent.click(screen.getByRole('button', { name: /Unlock/i }));
 
     // Now Admin Reset button IS visible in footer
@@ -31,7 +31,7 @@ describe('App Layout Hierarchy, Mobile Nav, & Admin Reset Security (Upgrades 1, 
   });
 
   it('places ParticipantStepLogger above HostAdminPanel on the Race Dashboard and provides a Log My Steps quick-jump button (Upgrade 1)', () => {
-    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD);
+    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD_HASH);
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: /I Understand/i }));
@@ -50,7 +50,7 @@ describe('App Layout Hierarchy, Mobile Nav, & Admin Reset Security (Upgrades 1, 
   });
 
   it('applies compact 2-column mobile grid classes on navigation bar (Upgrade 7)', () => {
-    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD);
+    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD_HASH);
     const { container } = render(<App />);
 
     const navEl = container.querySelector('nav');

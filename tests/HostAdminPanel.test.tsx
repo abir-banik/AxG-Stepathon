@@ -56,7 +56,7 @@ describe('HostAdminPanel Component', () => {
     expect(setIsAdmin).not.toHaveBeenCalled();
   });
 
-  it('unlocks with correct passcode STEPATHONADMIN2026', () => {
+  it('unlocks with correct passcode StepathonAdmin2027?!', () => {
     const setIsAdmin = vi.fn();
     render(
       <HostAdminPanel
@@ -74,7 +74,7 @@ describe('HostAdminPanel Component', () => {
     const input = screen.getByPlaceholderText('Enter Passcode...');
     const button = screen.getByRole('button', { name: /unlock/i });
 
-    fireEvent.change(input, { target: { value: 'STEPATHONADMIN2026' } });
+    fireEvent.change(input, { target: { value: 'StepathonAdmin2027?!' } });
     fireEvent.click(button);
 
     expect(setIsAdmin).toHaveBeenCalledWith(true);

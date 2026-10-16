@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, ArrowRight, AlertCircle, Footprints } from 'lucide-react';
-import { SITE_ACCESS_PASSWORD, HOST_ADMIN_PASSCODE } from '../constants';
+import { isValidAdminPasscode, isValidSitePassword } from '../utils/passwordHash';
 
 interface SitePasswordGateProps {
   onUnlock: (asAdmin?: boolean) => void;
@@ -14,13 +14,13 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ onUnlock }) => {
     e.preventDefault();
     const trimmed = password.trim();
 
-    if (trimmed === HOST_ADMIN_PASSCODE) {
+    if (isValidAdminPasscode(trimmed)) {
       setError(false);
       onUnlock(true);
       return;
     }
 
-    if (trimmed.toUpperCase() === SITE_ACCESS_PASSWORD.toUpperCase()) {
+    if (isValidSitePassword(trimmed)) {
       setError(false);
       onUnlock(false);
       return;

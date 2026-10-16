@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Team, AnnouncementBanner } from './types';
-import { IS_EVENT_CONCLUDED, SITE_ACCESS_PASSWORD, SITE_AUTH_STORAGE_KEY, HOST_ADMIN_PASSCODE } from './constants';
+import { IS_EVENT_CONCLUDED, SITE_ACCESS_PASSWORD_HASH, SITE_AUTH_STORAGE_KEY } from './constants';
 import { formatParticipantName } from './utils/nameFormatter';
+import { isValidAdminPasscode } from './utils/passwordHash';
 import GlobalOfficeMap from './components/GlobalOfficeMap';
 import DashboardStats from './components/DashboardStats';
 import HostAdminPanel from './components/HostAdminPanel';
@@ -27,11 +28,11 @@ const App: React.FC = () => {
   const [hasAcceptedHonorCode, setHasAcceptedHonorCode] = useState<boolean>(false);
   const [isSiteUnlocked, setIsSiteUnlocked] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem(SITE_AUTH_STORAGE_KEY) === SITE_ACCESS_PASSWORD;
+    return localStorage.getItem(SITE_AUTH_STORAGE_KEY) === SITE_ACCESS_PASSWORD_HASH;
   });
 
   const handleSiteUnlock = (asAdmin: boolean = false) => {
-    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD);
+    localStorage.setItem(SITE_AUTH_STORAGE_KEY, SITE_ACCESS_PASSWORD_HASH);
     setIsSiteUnlocked(true);
     if (asAdmin) {
       setIsAdmin(true);
@@ -239,7 +240,7 @@ const App: React.FC = () => {
   const handleResetRace = async () => {
     const confirmation = window.prompt("DANGER: This will permanently delete ALL teams, racers, and step data.\n\nEnter Admin Password to confirm:");
     
-    if (confirmation && confirmation === HOST_ADMIN_PASSCODE) {
+    if (confirmation && isValidAdminPasscode(confirmation)) {
         setIsResetting(true);
         try {
             await api.resetRace();

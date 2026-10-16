@@ -1,7 +1,7 @@
 export const IS_EVENT_CONCLUDED = false; // Toggle true after event ends to show Thank You landing page
-export const SITE_ACCESS_PASSWORD = 'STEPATHON2026'; // Shared participant password to access the site
-export const HOST_ADMIN_PASSCODE = 'STEPATHONADMIN2026'; // Host admin portal passcode
-export const SITE_AUTH_STORAGE_KEY = 'stepathon_v3_site_auth';
+export const SITE_ACCESS_PASSWORD_HASH = '9288e4c434fcac2d09d7583509e538394f7eadebc6a59dc066c6323de236c59d'; // Salted SHA-256 hash for participant access
+export const HOST_ADMIN_PASSCODE_HASH = '866744bd0951e7dd830fdd96910f9756daa9c3fd9083e0c1bdfe7a99d42fc9c1'; // Salted SHA-256 hash for host admin portal
+export const SITE_AUTH_STORAGE_KEY = 'stepathon_v4_site_auth_hash';
 
 export const EVENT_START_DATE = '2026-10-19';
 export const EVENT_END_DATE = '2026-11-18';

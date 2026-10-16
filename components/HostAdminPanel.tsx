@@ -5,12 +5,12 @@ import {
   EVENT_WEEKS,
   EVENT_START_DATE,
   EVENT_END_DATE,
-  HOST_ADMIN_PASSCODE,
   MAX_TEAM_MEMBERS,
   MAX_HOST_OVERRIDE_STEPS_PER_ENTRY,
   computeWeekFromDate
 } from '../constants';
 import { formatParticipantName } from '../utils/nameFormatter';
+import { isValidAdminPasscode } from '../utils/passwordHash';
 import { 
   ShieldCheck, Plus, Trash2, Users, UserPlus, 
   Sparkles, Check, X, Lock, Unlock, Layers, MapPin,
@@ -215,7 +215,7 @@ const HostAdminPanel: React.FC<HostAdminPanelProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === HOST_ADMIN_PASSCODE) {
+    if (isValidAdminPasscode(passcode)) {
       setIsAdmin(true);
       setPassError(false);
       setPasscode('');
