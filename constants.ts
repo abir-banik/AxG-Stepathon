@@ -121,6 +121,8 @@ export interface WeeklyPhotoChallengeConfig {
   startIso: string;
   endIso: string;
   prompts: PhotoChallengePromptOption[];
+  photoIdeas?: string[];
+  callToAction?: string;
 }
 
 export const PRE_EVENT_PHOTO_CHALLENGE: WeeklyPhotoChallengeConfig = {
@@ -145,100 +147,107 @@ export const WEEKLY_PHOTO_CHALLENGES: WeeklyPhotoChallengeConfig[] = [
     weekNumber: 1,
     badgeLabel: "Week 1 Photo Challenge",
     themeTitle: "Wear Pink for Breast Cancer Awareness",
-    dateRangeLabel: "October 19 – October 25",
+    dateRangeLabel: "October 19 – October 23",
     startIso: "2026-10-19",
     endIso: "2026-10-25",
     prompts: [
       {
         emoji: "🌸",
         title: "Find Something Pink",
-        description: "Photograph a pink flower, sign, mural, building, or object you discover during your steps.",
+        description: "While you're out walking, snap a photo of something pink you discover along the way—from a flower, sign, mural, or building to something unexpected!",
         isFeatured: true
       },
       {
         emoji: "💗",
         title: "Pink in Motion",
-        description: "Take a selfie wearing pink while on your walk."
+        description: "Take a selfie wearing pink while on your walk and let's see AxG turn PINK this week!"
       }
-    ]
+    ],
+    photoIdeas: [
+      "🌷 A pink flower",
+      "🎨 A mural or piece of art",
+      "🏙️ A sign or building",
+      "👟 Something you're wearing",
+      "💡 Or something totally unexpected!"
+    ],
+    callToAction: "Share your 📸 photo + a short caption in the Teams channel for a chance to be our Week 1 Photo Challenge Winner! 🏆"
   },
   {
     weekNumber: 2,
     badgeLabel: "Week 2 Photo Challenge",
-    themeTitle: "Mental Health Awareness Month",
-    dateRangeLabel: "October 26 – November 1",
+    themeTitle: "Mindful Moments for Men’s Mental Health Awareness",
+    dateRangeLabel: "October 26 – October 30",
     startIso: "2026-10-26",
     endIso: "2026-11-01",
     prompts: [
       {
         emoji: "🧘",
         title: "Mindful Moment",
-        description: "Photograph a beautiful sunrise, sunset, tree, beach, park, or other view you noticed while walking.",
+        description: "With Men’s Mental Health Awareness Month coming up in November, we’re getting a head start by encouraging everyone to make time for mindfulness and mental well-being. While you're out walking, snap a photo of a view that made you pause, take a breath, and appreciate the moment!",
         isFeatured: true
-      },
-      {
-        emoji: "🌿",
-        title: "My Peaceful Place",
-        description: "Capture a location that helps you feel calm or grounded."
-      },
-      {
-        emoji: "☀️",
-        title: "Mood Booster",
-        description: "Share something from your walk that made you smile."
       }
-    ]
+    ],
+    photoIdeas: [
+      "🌅 A beautiful sunrise or sunset",
+      "🌳 A tree or peaceful trail",
+      "🌊 A beach or waterfront",
+      "🌼 A park or garden",
+      "✨ Or any view that brought you a moment of calm!"
+    ],
+    callToAction: "Share your 📸 photo + a short caption in the Teams channel for a chance to be our Week 2 Photo Challenge Winner! 🏆"
   },
   {
     weekNumber: 3,
     badgeLabel: "Week 3 Photo Challenge",
-    themeTitle: "Celebrating Diwali",
-    dateRangeLabel: "November 2 – November 8",
+    themeTitle: "Celebrating Diwali: Find the Light",
+    dateRangeLabel: "November 2 – November 6",
     startIso: "2026-11-02",
     endIso: "2026-11-08",
     prompts: [
       {
         emoji: "🪔",
         title: "Find the Light",
-        description: "Take a photo of something bright, colorful, or illuminating during your walk.",
+        description: "This week, we’re celebrating Diwali with a photo challenge inspired by light, color, and brightness! While you're out walking, snap a photo of something bright, colorful, or illuminating that catches your eye!",
         isFeatured: true
-      },
-      {
-        emoji: "✨",
-        title: "Light Up Your Path",
-        description: "Capture a photo of lights, lanterns, candles, reflections, or a beautifully lit scene."
       }
-    ]
+    ],
+    photoIdeas: [
+      "🌅 A colorful sunrise or sunset",
+      "✨ Sparkling or decorative lights",
+      "🌸 Bright flowers or colorful scenery",
+      "🎨 Vibrant art, murals, or decorations",
+      "💡 Or something totally unexpected that lights up your walk!"
+    ],
+    callToAction: "Share your 📸 photo + a short caption in the Teams channel for a chance to be our Week 3 Photo Challenge Winner! 🏆"
   },
   {
     weekNumber: 4,
     badgeLabel: "Week 4 Photo Challenge",
-    themeTitle: "Movember Men's Health",
-    dateRangeLabel: "November 9 – November 15",
+    themeTitle: "Movember Men’s Health: Walk With Someone You Appreciate",
+    dateRangeLabel: "November 9 – November 13",
     startIso: "2026-11-09",
     endIso: "2026-11-15",
     prompts: [
       {
         emoji: "🙌",
         title: "Walk With Someone You Appreciate",
-        description: "Share a photo walking with a man (or men!) you appreciate!",
+        description: "This week, we’re recognizing Movember and men’s health by celebrating the men who make a difference in our lives. While you're out getting your steps in, invite men you appreciate to join you and snap a photo together!",
         isFeatured: true
-      },
-      {
-        emoji: "👨",
-        title: "Mustache Moment",
-        description: "Draw, wear, or find a mustache and snap a photo while walking."
-      },
-      {
-        emoji: "🚶",
-        title: "Walk With a Buddy",
-        description: "Take a picture walking with a colleague, family member, friend, or pet."
       }
-    ]
+    ],
+    photoIdeas: [
+      "👨‍👦 A family member",
+      "🤝 A friend",
+      "👥 A coworker",
+      "🏃 A walking or workout buddy",
+      "💙 Or any man in your life you appreciate!"
+    ],
+    callToAction: "Share your 📸 photo + a short caption in the Teams channel telling us who you're walking with and why you appreciate them for a chance to be our Week 4 Photo Challenge Winner! 🏆"
   },
   {
     weekNumber: 5,
     badgeLabel: "Week 5 Photo Challenge",
-    themeTitle: "Gratitude, Community, and Connection",
+    themeTitle: "Gratitude, Community & Connection",
     dateRangeLabel: "November 16 – November 20",
     startIso: "2026-11-16",
     endIso: "2026-12-31",
@@ -246,20 +255,18 @@ export const WEEKLY_PHOTO_CHALLENGES: WeeklyPhotoChallengeConfig[] = [
       {
         emoji: "❤️",
         title: "Grateful for This",
-        description: "Share a photo of something you're thankful for that you encountered during your walk.",
+        description: "For our final week of the AxG Global Stepathon, we’re taking a moment to celebrate gratitude and the people, places, and little things that make our journeys meaningful. While you're out walking, snap a photo of something you encounter that you're thankful for!",
         isFeatured: true
-      },
-      {
-        emoji: "🌳",
-        title: "Honoring the Land",
-        description: "Take a photo of a natural space, park, trail, tree, river, or landscape that you appreciate and enjoy."
-      },
-      {
-        emoji: "🍂",
-        title: "Signs of the Season",
-        description: "Photograph your favorite fall scene while getting your steps in."
       }
-    ]
+    ],
+    photoIdeas: [
+      "🌳 A favorite place or beautiful view",
+      "👨‍👩‍👧‍👦 Friends, family, or your walking crew",
+      "🐾 A furry companion joining your steps",
+      "🌅 A peaceful moment in nature",
+      "❤️ Or anything that reminds you of something you're grateful for!"
+    ],
+    callToAction: "Share your 📸 photo + a short caption in the Teams channel telling us why you're grateful for it for a chance to be our Week 5 Photo Challenge Winner! 🏆"
   }
 ];
 

@@ -34,35 +34,59 @@ const WeeklyPhotoChallenge: React.FC<WeeklyPhotoChallengeProps> = ({ currentDate
         </div>
       </div>
 
-      {/* Prompt Options for Current Week Only */}
-      <div className={`grid grid-cols-1 ${activeChallenge.prompts.length > 1 ? 'md:grid-cols-2' : ''} gap-3.5`}>
-        {activeChallenge.prompts.map((prompt, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-2xl border transition-all ${
-              prompt.isFeatured
-                ? 'bg-gradient-to-br from-purple-50/70 via-blue-50/50 to-indigo-50/60 border-purple-200/80 shadow-2xs'
-                : 'bg-gray-50/70 border-gray-100'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl leading-none select-none pt-0.5">{prompt.emoji}</span>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-extrabold text-gray-900 text-sm">{prompt.title}</h4>
-                  {prompt.isFeatured && !isPreEvent && (
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider bg-purple-600 text-white px-2 py-0.5 rounded-full">
-                      Featured Prompt
-                    </span>
-                  )}
+      {/* Prompt & Photo Ideas Grid */}
+      <div className={`grid grid-cols-1 ${(activeChallenge.photoIdeas && activeChallenge.photoIdeas.length > 0) || activeChallenge.prompts.length > 1 ? 'md:grid-cols-2' : ''} gap-3.5`}>
+        {/* Left Column: Prompt Card(s) */}
+        <div className="space-y-3">
+          {activeChallenge.prompts.map((prompt, index) => (
+            <div
+              key={index}
+              className={`p-4 rounded-2xl border transition-all h-full flex flex-col justify-center ${
+                prompt.isFeatured
+                  ? 'bg-gradient-to-br from-purple-50/70 via-blue-50/50 to-indigo-50/60 border-purple-200/80 shadow-2xs'
+                  : 'bg-gray-50/70 border-gray-100'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-2xl leading-none select-none pt-0.5">{prompt.emoji}</span>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-extrabold text-gray-900 text-sm">{prompt.title}</h4>
+                    {prompt.isFeatured && !isPreEvent && (
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider bg-purple-600 text-white px-2 py-0.5 rounded-full">
+                        Featured Prompt
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed font-medium">
+                    {prompt.description}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                  {prompt.description}
-                </p>
               </div>
             </div>
+          ))}
+        </div>
+
+        {/* Right Column: Photo Ideas to Snap (if configured) */}
+        {activeChallenge.photoIdeas && activeChallenge.photoIdeas.length > 0 && (
+          <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50/70 flex flex-col justify-between space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-500">
+                📸 Ideas to Snap on Your Walk
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {activeChallenge.photoIdeas.map((idea, idx) => (
+                <span
+                  key={idx}
+                  className="bg-white border border-gray-200/80 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-xl shadow-2xs"
+                >
+                  {idea}
+                </span>
+              ))}
+            </div>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Footer Note */}
@@ -72,10 +96,10 @@ const WeeklyPhotoChallenge: React.FC<WeeklyPhotoChallengeProps> = ({ currentDate
           <span>
             {isPreEvent
               ? 'New photo challenge prompts drop every Monday starting October 19!'
-              : 'Share your photo in the Stepathon group chat! Weekly Photo Challenge winners are announced every Tuesday.'}
+              : (activeChallenge.callToAction || 'Share your 📸 photo + a short caption in the Teams channel for a chance to be our Weekly Photo Challenge Winner! 🏆')}
           </span>
         </div>
-        <span className="text-[11px] font-bold text-purple-600">
+        <span className="text-[11px] font-bold text-purple-600 shrink-0">
           Refreshes automatically each week
         </span>
       </div>
