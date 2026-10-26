@@ -122,11 +122,38 @@ describe('WeeklyLeaderboardPage component', () => {
       />
     );
 
-    // Oct 28, 2026 is in Week 2 (Oct 26 – Nov 1)
+    // Oct 28, 2026 is Wednesday of Week 2 (Oct 26 – Nov 1)
     expect(screen.getByText('• Current')).toBeInTheDocument();
     // Week 2 Alice S. has 5,000 steps; Bob J. has 0 steps in Week 2 so Bob J. should not appear by default
     expect(screen.getByText('Alice S.')).toBeInTheDocument();
     expect(screen.queryByText('Bob J.')).not.toBeInTheDocument();
+  });
+
+  it('stays defaulted to the closing week all day on cutoff Mondays (e.g. Oct 26 stays on Week 1) and advances on Tuesday (Oct 27)', () => {
+    const { unmount } = render(
+      <WeeklyLeaderboardPage
+        users={mockUsers}
+        teams={mockTeams}
+        distanceUnit="mi"
+        referenceDateStr="2026-10-26"
+      />
+    );
+
+    // On Monday Oct 26, Week 1 submission window is still open until Midnight PST, so Week 1 (where Bob J. has 8,000 steps) is shown by default
+    expect(screen.getByText('Bob J.')).toBeInTheDocument();
+    unmount();
+
+    // On Tuesday Oct 27, after the Monday Midnight PST cutoff passes, it defaults to Week 2
+    render(
+      <WeeklyLeaderboardPage
+        users={mockUsers}
+        teams={mockTeams}
+        distanceUnit="mi"
+        referenceDateStr="2026-10-27"
+      />
+    );
+    expect(screen.queryByText('Bob J.')).not.toBeInTheDocument();
+    expect(screen.getByText('Alice S.')).toBeInTheDocument();
   });
 });
 

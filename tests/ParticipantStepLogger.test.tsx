@@ -194,7 +194,24 @@ describe('ParticipantStepLogger Component', () => {
     alertMock.mockRestore();
   });
 
-  it('renders step history and handles deletion', () => {
+  it('hides step history delete buttons for regular participants and shows overwrite tip', () => {
+    render(
+      <ParticipantStepLogger
+        users={mockUsers}
+        teams={mockTeams}
+        onAddSteps={vi.fn()}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Alice S.'));
+
+    expect(screen.getByText(/Step History for Alice S\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Need to fix a date\? Just log that date again above/i)).toBeInTheDocument();
+    expect(screen.queryByTitle('Delete entry')).not.toBeInTheDocument();
+  });
+
+  it('renders step history delete buttons and handles deletion when isAdmin is true', () => {
     const onDeleteStep = vi.fn();
     render(
       <ParticipantStepLogger
@@ -202,6 +219,7 @@ describe('ParticipantStepLogger Component', () => {
         teams={mockTeams}
         onAddSteps={vi.fn()}
         onDeleteStep={onDeleteStep}
+        isAdmin={true}
       />
     );
 
@@ -211,7 +229,7 @@ describe('ParticipantStepLogger Component', () => {
     // History log list header
     expect(screen.getByText(/Step History for Alice S\./i)).toBeInTheDocument();
 
-    // Verify history rows
+    // Verify history rows have delete buttons for admin
     const deleteButtons = screen.getAllByTitle('Delete entry');
     expect(deleteButtons.length).toBe(2);
 

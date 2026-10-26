@@ -19,6 +19,7 @@ interface ParticipantStepLoggerProps {
   onAddSteps: (userId: string, steps: number, week: number, customDate?: string) => Promise<void>;
   onDeleteStep: (userId: string, entryIndex: number) => Promise<void>;
   distanceUnit?: 'mi' | 'km';
+  isAdmin?: boolean;
 }
 
 const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
@@ -26,7 +27,8 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   teams,
   onAddSteps,
   onDeleteStep,
-  distanceUnit = 'mi'
+  distanceUnit = 'mi',
+  isAdmin = false
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>('ALL');
   const [sortOrder, setSortOrder] = useState<'name-asc' | 'name-desc'>('name-asc');
@@ -264,9 +266,14 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
           {/* HISTORY LOG TABLE */}
           <div className="bg-white rounded-xl border border-blue-100 overflow-hidden">
             <div className="px-4 py-2.5 bg-blue-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-blue-100">
-              <span className="text-xs font-bold text-blue-800 uppercase tracking-wide flex items-center gap-1.5">
-                <History size={14} /> Step History for {formatParticipantName(selectedUser.name)} ({selectedUser.stepHistory?.length || 0} entries)
-              </span>
+              <div>
+                <span className="text-xs font-bold text-blue-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <History size={14} /> Step History for {formatParticipantName(selectedUser.name)} ({selectedUser.stepHistory?.length || 0} entries)
+                </span>
+                <p className="text-[11px] text-blue-700/80 font-medium mt-0.5">
+                  Need to fix a date? Just log that date again above to automatically update it.
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-blue-700">Sort by:</span>
                 <select
@@ -292,7 +299,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                       <th className="px-4 py-2 font-medium">Date</th>
                       <th className="px-4 py-2 font-medium">Week</th>
                       <th className="px-4 py-2 font-medium">Amount</th>
-                      <th className="px-4 py-2 font-medium text-right">Action</th>
+                      {isAdmin && <th className="px-4 py-2 font-medium text-right">Action</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -319,16 +326,18 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
                           </td>
                           <td className="px-4 py-2.5 text-gray-600 font-bold">Week {entry.week || 1}</td>
                           <td className="px-4 py-2.5 font-bold text-gray-900">+{(entry.amount || 0).toLocaleString()}</td>
-                          <td className="px-4 py-2.5 text-right">
-                            <button
-                              type="button"
-                              onClick={() => onDeleteStep(selectedUser.id, originalIndex)}
-                              className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
-                              title="Delete entry"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </td>
+                          {isAdmin && (
+                            <td className="px-4 py-2.5 text-right">
+                              <button
+                                type="button"
+                                onClick={() => onDeleteStep(selectedUser.id, originalIndex)}
+                                className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
+                                title="Delete entry"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                   </tbody>

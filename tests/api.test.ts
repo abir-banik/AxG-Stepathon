@@ -9,7 +9,8 @@ import {
   WEEKLY_DEADLINES,
   MAX_PARTICIPANT_STEPS_PER_ENTRY,
   MAX_HOST_OVERRIDE_STEPS_PER_ENTRY,
-  computeWeekFromDate
+  computeWeekFromDate,
+  computeLeaderboardDefaultWeek
 } from '../constants';
 
 describe('Centralized Event Config & Step Logic', () => {
@@ -36,6 +37,20 @@ describe('Centralized Event Config & Step Logic', () => {
     expect(computeWeekFromDate('2026-11-16')).toBe(4);
     expect(computeWeekFromDate('2026-11-18')).toBe(4);
     expect(Object.keys(WEEKLY_DEADLINES).length).toBe(EVENT_WEEKS.length);
+  });
+
+  it('keeps Weekly Leaderboard default week on the closing week during cutoff Mondays and advances on Tuesday', () => {
+    expect(computeLeaderboardDefaultWeek('2026-10-19')).toBe(1);
+    expect(computeLeaderboardDefaultWeek('2026-10-25')).toBe(1);
+    // Cutoff Monday Oct 26 stays on Week 1; Tuesday Oct 27 advances to Week 2
+    expect(computeLeaderboardDefaultWeek('2026-10-26')).toBe(1);
+    expect(computeLeaderboardDefaultWeek('2026-10-27')).toBe(2);
+    // Cutoff Monday Nov 2 stays on Week 2; Tuesday Nov 3 advances to Week 3
+    expect(computeLeaderboardDefaultWeek('2026-11-02')).toBe(2);
+    expect(computeLeaderboardDefaultWeek('2026-11-03')).toBe(3);
+    // Cutoff Monday Nov 9 stays on Week 3; Tuesday Nov 10 advances to Week 4
+    expect(computeLeaderboardDefaultWeek('2026-11-09')).toBe(3);
+    expect(computeLeaderboardDefaultWeek('2026-11-10')).toBe(4);
   });
 
   it('caps entries at MAX_PARTICIPANT_STEPS_PER_ENTRY max', async () => {

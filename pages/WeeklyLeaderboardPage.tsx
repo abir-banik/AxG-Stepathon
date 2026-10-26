@@ -5,7 +5,7 @@ import {
   WEEKLY_DEADLINES,
   EVENT_START_DATE,
   EVENT_END_DATE,
-  computeWeekFromDate
+  computeLeaderboardDefaultWeek
 } from '../constants';
 import { formatParticipantName } from '../utils/nameFormatter';
 import { Calendar, Trophy, Award, Crown, Clock } from 'lucide-react';
@@ -48,7 +48,7 @@ const WeeklyLeaderboardPage: React.FC<WeeklyLeaderboardPageProps> = ({
   };
   const activeDateStr = getActiveDateStr();
   const isCompetitionLive = activeDateStr >= EVENT_START_DATE && activeDateStr <= EVENT_END_DATE;
-  const liveWeekNum = computeWeekFromDate(activeDateStr);
+  const liveWeekNum = computeLeaderboardDefaultWeek(activeDateStr);
 
   const [selectedWeekNum, setSelectedWeekNum] = useState<number>(() => liveWeekNum);
   const isKm = distanceUnit === 'km';

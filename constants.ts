@@ -85,6 +85,27 @@ export const computeWeekFromDate = (dateStr: string): number => {
   return 1;
 };
 
+/**
+ * Computes the default week tab for the Weekly Leaderboard.
+ * On cutoff Mondays (the first day of Weeks 2, 3, and 4), participants have until
+ * Monday @ Midnight PST to finish logging the previous week's steps, so the
+ * Weekly Leaderboard stays defaulted to the closing week all day Monday and
+ * advances to the new week on Tuesday.
+ */
+export const computeLeaderboardDefaultWeek = (dateStr: string): number => {
+  if (!dateStr) return 1;
+  const cleanDate = dateStr.substring(0, 10);
+  for (let i = EVENT_WEEKS.length - 1; i >= 0; i--) {
+    if (cleanDate >= EVENT_WEEKS[i].startIso) {
+      if (i > 0 && cleanDate === EVENT_WEEKS[i].startIso) {
+        return EVENT_WEEKS[i - 1].weekNumber;
+      }
+      return EVENT_WEEKS[i].weekNumber;
+    }
+  }
+  return 1;
+};
+
 export interface PhotoChallengePromptOption {
   emoji: string;
   title: string;

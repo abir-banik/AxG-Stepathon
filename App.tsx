@@ -197,6 +197,9 @@ const App: React.FC = () => {
   };
 
   const handleDeleteStep = async (userId: string, entryIndex: number) => {
+     if (!isAdmin) return;
+     if (!window.confirm("Delete this step entry?")) return;
+
      setUsers(prev => prev.map(u => {
         if (u.id === userId && u.stepHistory && u.stepHistory[entryIndex]) {
             const newHistory = u.stepHistory.filter((_, idx) => idx !== entryIndex);
@@ -498,6 +501,7 @@ const App: React.FC = () => {
               onAddSteps={handleAddSteps}
               onDeleteStep={handleDeleteStep}
               distanceUnit={distanceUnit}
+              isAdmin={isAdmin}
             />
 
             {/* Host & Admin Panel (Placed at bottom so steppers aren't greeted by an admin login bar first) */}
