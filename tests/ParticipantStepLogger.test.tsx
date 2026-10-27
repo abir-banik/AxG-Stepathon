@@ -128,14 +128,14 @@ describe('ParticipantStepLogger Component', () => {
     const dateInput = screen.getByTitle('Select date of steps (October 19 to November 18 only)');
     const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
 
-    // Select date in Week 1 (October 19, 2026)
-    fireEvent.change(dateInput, { target: { value: '2026-10-19' } });
+    // Select an unlogged date in Week 1 (October 21, 2026)
+    fireEvent.change(dateInput, { target: { value: '2026-10-21' } });
     fireEvent.change(stepInput, { target: { value: '8000' } });
 
     fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
 
     await waitFor(() => {
-      expect(onAddSteps).toHaveBeenCalledWith('user-1', 8000, 1, '2026-10-19');
+      expect(onAddSteps).toHaveBeenCalledWith('user-1', 8000, 1, '2026-10-21');
     });
   });
 
@@ -350,7 +350,9 @@ describe('ParticipantStepLogger Component', () => {
     expect(screen.getByText('2. Auto-Week')).toBeInTheDocument();
     expect(screen.getByText('3. Daily Step Count (Max 30k)')).toBeInTheDocument();
 
-    // Submit 7,500 steps
+    // Submit 7,500 steps on an unlogged date
+    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 18 only)');
+    fireEvent.change(dateInput, { target: { value: '2026-10-21' } });
     const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
     fireEvent.change(stepInput, { target: { value: '7500' } });
     fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
@@ -373,5 +375,96 @@ describe('ParticipantStepLogger Component', () => {
     expect(screen.getByText('No pre-assigned participants found.')).toBeInTheDocument();
     expect(screen.getByText(/October 7 – October 15, 2026/i)).toBeInTheDocument();
   });
+
+  it('shows Option 1 overwrite confirmation modal when logging on a date with existing steps and cancels on "Not Now"', () => {
+    const onAddSteps = vi.fn();
+    render(
+      <ParticipantStepLogger
+        users={mockUsers}
+        teams={mockTeams}
+        onAddSteps={onAddSteps}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    // Click on Alice S. (who already has 5,000 steps logged on 2026-10-20)
+    fireEvent.click(screen.getByText('Alice S.'));
+
+    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 18 only)');
+    const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
+
+    fireEvent.change(dateInput, { target: { value: '2026-10-20' } });
+    fireEvent.change(stepInput, { target: { value: '7500' } });
+    fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
+
+    // onAddSteps should NOT have been called yet
+    expect(onAddSteps).not.toHaveBeenCalled();
+
+    // Option 1 confirmation modal should be open with Alice S.'s name, existing steps, date, and new steps
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveTextContent('Hey Alice S.!');
+    expect(dialog).toHaveTextContent('You already have 5,000 steps logged for Oct 20.');
+    expect(dialog).toHaveTextContent('Would you like to update your Oct 20 steps to 7,500?');
+
+    // Click "Not Now" to cancel
+    fireEvent.click(screen.getByRole('button', { name: /not now/i }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(onAddSteps).not.toHaveBeenCalled();
+  });
+
+  it('updates steps and shows confirmation toast when clicking "Yes, Update My Steps" in the overwrite modal across multiple participants and dates', async () => {
+    const onAddSteps = vi.fn().mockResolvedValue(undefined);
+    const multiUsers: User[] = [
+      ...mockUsers,
+      {
+        id: 'user-3',
+        name: 'Carlos Mendoza',
+        teamId: 'team-1',
+        teamName: 'Boba Walkers',
+        steps: 12345,
+        weeklySteps: { 1: 12345 },
+        stepHistory: [
+          { amount: 12345, date: '2026-10-22', week: 1 }
+        ],
+        iconId: 'smile'
+      }
+    ];
+
+    render(
+      <ParticipantStepLogger
+        users={multiUsers}
+        teams={mockTeams}
+        onAddSteps={onAddSteps}
+        onDeleteStep={vi.fn()}
+      />
+    );
+
+    // 1. Test Carlos M. updating Oct 22 from 12,345 to 18,900
+    fireEvent.click(screen.getByText('Carlos M.'));
+
+    const dateInput = screen.getByTitle('Select date of steps (October 19 to November 18 only)');
+    const stepInput = screen.getByPlaceholderText('Enter steps (e.g. 5000)...');
+
+    fireEvent.change(dateInput, { target: { value: '2026-10-22' } });
+    fireEvent.change(stepInput, { target: { value: '18900' } });
+    fireEvent.submit(screen.getByRole('button', { name: /log steps/i }).closest('form')!);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent('Hey Carlos M.!');
+    expect(dialog).toHaveTextContent('You already have 12,345 steps logged for Oct 22.');
+    expect(dialog).toHaveTextContent('Would you like to update your Oct 22 steps to 18,900?');
+
+    // Click "Yes, Update My Steps"
+    fireEvent.click(screen.getByRole('button', { name: /yes, update my steps/i }));
+
+    await waitFor(() => {
+      expect(onAddSteps).toHaveBeenCalledWith('user-3', 18900, 1, '2026-10-22');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent(/Saved! Logged 18,900 steps for Oct 22 \(Week 1\)\./i);
+    });
+  });
 });
+
 

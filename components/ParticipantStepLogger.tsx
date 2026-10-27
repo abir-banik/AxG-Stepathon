@@ -39,6 +39,16 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
   // Form States
   const [stepInput, setStepInput] = useState('');
   const [stepSavedMessage, setStepSavedMessage] = useState<string | null>(null);
+  const [pendingOverwrite, setPendingOverwrite] = useState<{
+    userId: string;
+    userName: string;
+    date: string;
+    formattedDate: string;
+    week: number;
+    existingSteps: number;
+    newSteps: number;
+  } | null>(null);
+
   const getLocalTodayStr = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -101,28 +111,124 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
+  const completeStepSubmission = async (userId: string, stepsVal: number, weekVal: number, dateVal: string) => {
+    await onAddSteps(userId, stepsVal, weekVal, dateVal);
+    const formattedDate = formatEntryDate(dateVal);
+    setStepSavedMessage(`Saved! Logged ${stepsVal.toLocaleString()} steps for ${formattedDate} (Week ${weekVal}).`);
+    setStepInput('');
+    setPendingOverwrite(null);
+    setTimeout(() => {
+      setStepSavedMessage(null);
+    }, 4000);
+  };
+
   const handleStepSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedUserId && stepInput) {
+    if (selectedUserId && selectedUser && stepInput) {
       const val = parseInt(stepInput, 10);
       if (val > 0) {
         if (val > MAX_PARTICIPANT_STEPS_PER_ENTRY) {
           alert(`Maximum daily entry limit is ${MAX_PARTICIPANT_STEPS_PER_ENTRY.toLocaleString()} steps. For 30,000+ steps in a single day, please send photo proof of your steps in the group chat with the hashtag #bigstepper and the amount of steps!`);
           return;
         }
-        await onAddSteps(selectedUserId, val, selectedWeek, selectedDate);
-        const formattedDate = formatEntryDate(selectedDate);
-        setStepSavedMessage(`Saved! Logged ${val.toLocaleString()} steps for ${formattedDate} (Week ${selectedWeek}).`);
-        setStepInput('');
-        setTimeout(() => {
-          setStepSavedMessage(null);
-        }, 4000);
+
+        const cleanTargetDate = selectedDate.substring(0, 10);
+        const existingEntry = (selectedUser.stepHistory || []).find(
+          entry => (entry.date || '').substring(0, 10) === cleanTargetDate
+        );
+
+        if (existingEntry && (Number(existingEntry.amount) || 0) > 0) {
+          setPendingOverwrite({
+            userId: selectedUserId,
+            userName: formatParticipantName(selectedUser.name),
+            date: selectedDate,
+            formattedDate: formatEntryDate(selectedDate),
+            week: selectedWeek,
+            existingSteps: Number(existingEntry.amount) || 0,
+            newSteps: val
+          });
+          return;
+        }
+
+        await completeStepSubmission(selectedUserId, val, selectedWeek, selectedDate);
       }
     }
   };
 
+  const handleConfirmOverwrite = async () => {
+    if (!pendingOverwrite) return;
+    await completeStepSubmission(
+      pendingOverwrite.userId,
+      pendingOverwrite.newSteps,
+      pendingOverwrite.week,
+      pendingOverwrite.date
+    );
+  };
+
   return (
     <div id="step-logger-section" className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm mt-8 space-y-6 scroll-mt-6">
+      {/* Friendly Overwrite Confirmation Modal (Option 1) */}
+      {pendingOverwrite && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="overwrite-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+        >
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl max-w-md w-full p-6 md:p-7 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-[#4285F4] flex items-center justify-center text-xl shadow-2xs shrink-0">
+                👟
+              </div>
+              <h4 id="overwrite-modal-title" className="text-lg font-extrabold text-gray-900">
+                Hey {pendingOverwrite.userName}!
+              </h4>
+            </div>
+
+            <div className="space-y-2 text-sm text-gray-600 leading-relaxed">
+              <p>
+                You already have{' '}
+                <strong className="text-gray-900 font-extrabold">
+                  {pendingOverwrite.existingSteps.toLocaleString()} steps
+                </strong>{' '}
+                logged for{' '}
+                <strong className="text-gray-900 font-extrabold">
+                  {pendingOverwrite.formattedDate}
+                </strong>
+                .
+              </p>
+              <p>
+                Would you like to update your{' '}
+                <strong className="text-gray-900 font-extrabold">
+                  {pendingOverwrite.formattedDate}
+                </strong>{' '}
+                steps to{' '}
+                <strong className="text-[#4285F4] font-extrabold">
+                  {pendingOverwrite.newSteps.toLocaleString()}
+                </strong>
+                ?
+              </p>
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setPendingOverwrite(null)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                Not Now
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmOverwrite}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#4285F4] hover:bg-blue-600 shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Check size={15} /> Yes, Update My Steps
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
@@ -138,6 +244,7 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
             onClick={() => {
               setSelectedUserId(null);
               setStepSavedMessage(null);
+              setPendingOverwrite(null);
             }}
             className="flex items-center gap-2 text-gray-600 hover:text-red-500 bg-gray-100 px-4 py-2 rounded-full text-sm font-medium transition-colors"
           >
