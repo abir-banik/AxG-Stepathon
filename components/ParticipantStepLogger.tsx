@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { User, Team } from '../types';
 import {
   TOTAL_WEEKS,
@@ -167,25 +168,25 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
 
   return (
     <div id="step-logger-section" className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm mt-8 space-y-6 scroll-mt-6">
-      {/* Friendly Overwrite Confirmation Modal (Option 1) */}
-      {pendingOverwrite && (
+      {/* Friendly Overwrite Confirmation Modal (Option 1) rendered in document.body so it always centers in the viewport */}
+      {pendingOverwrite && typeof document !== 'undefined' && createPortal(
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="overwrite-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fade-in"
         >
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl max-w-md w-full p-6 md:p-7 space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-[#4285F4] flex items-center justify-center text-xl shadow-2xs shrink-0">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl max-w-lg w-full p-7 md:p-9 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#4285F4] flex items-center justify-center text-2xl shadow-2xs shrink-0">
                 👟
               </div>
-              <h4 id="overwrite-modal-title" className="text-lg font-extrabold text-gray-900">
+              <h4 id="overwrite-modal-title" className="text-xl md:text-2xl font-extrabold text-gray-900">
                 Hey {pendingOverwrite.userName}!
               </h4>
             </div>
 
-            <div className="space-y-2 text-sm text-gray-600 leading-relaxed">
+            <div className="space-y-3 text-base md:text-lg text-gray-600 leading-relaxed">
               <p>
                 You already have{' '}
                 <strong className="text-gray-900 font-extrabold">
@@ -210,24 +211,25 @@ const ParticipantStepLogger: React.FC<ParticipantStepLoggerProps> = ({
               </p>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setPendingOverwrite(null)}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-5 py-3 rounded-xl text-sm md:text-base font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 Not Now
               </button>
               <button
                 type="button"
                 onClick={handleConfirmOverwrite}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#4285F4] hover:bg-blue-600 shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm md:text-base font-extrabold text-white bg-[#4285F4] hover:bg-blue-600 shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Check size={15} /> Yes, Update My Steps
+                <Check size={18} /> Yes, Update My Steps
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       
       {/* Header */}

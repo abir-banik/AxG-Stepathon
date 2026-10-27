@@ -53,7 +53,7 @@ describe('WeeklyLeaderboardPage component', () => {
   });
 
   it('calculates individual weekly stats correctly and formats names as First L.', () => {
-    render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} distanceUnit="mi" />);
+    render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} distanceUnit="mi" referenceDateStr="2026-10-21" />);
     
     // Week 1 Charlie B.: 12,000 steps
     // Week 1 Alice S.: 10,000 steps
@@ -68,7 +68,7 @@ describe('WeeklyLeaderboardPage component', () => {
   });
 
   it('switches calculations when selected week changes', () => {
-    render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} distanceUnit="mi" />);
+    render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} distanceUnit="mi" referenceDateStr="2026-10-21" />);
     
     // Click Week 2 button
     const week2Button = screen.getByRole('button', { name: /Week 2/i });
@@ -83,7 +83,7 @@ describe('WeeklyLeaderboardPage component', () => {
   });
 
   it('converts distances to kilometers when unit is km', () => {
-    render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} distanceUnit="km" />);
+    render(<WeeklyLeaderboardPage users={mockUsers} teams={mockTeams} distanceUnit="km" referenceDateStr="2026-10-21" />);
     
     // Week 1 Charlie B.: 12000 steps / 2000 = 6 miles * 1.60934 = 9.7 km
     expect(screen.getAllByText('9.7 km').length).toBeGreaterThanOrEqual(1);
@@ -104,7 +104,7 @@ describe('WeeklyLeaderboardPage component', () => {
       iconId: 'smile'
     };
 
-    render(<WeeklyLeaderboardPage users={[userWithLateSubmission]} teams={mockTeams} distanceUnit="mi" />);
+    render(<WeeklyLeaderboardPage users={[userWithLateSubmission]} teams={mockTeams} distanceUnit="mi" referenceDateStr="2026-10-21" />);
     
     // Should show 5,000 steps for Week 1 (not 15,000) and formatted name "Late S."
     expect(screen.getByText('Late S.')).toBeInTheDocument();
